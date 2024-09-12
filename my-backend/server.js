@@ -1,20 +1,39 @@
-const express = require('express');
-const app = express();
-const PORT = process.env.PORT || 3000;
+require('dotenv').config();
+const mysql = require('mysql');
 
-// Middleware pour parser le JSON
-app.use(express.json());
+// Debug: Afficher les variables d'environnement
+/*console.log('DB_HOST:', process.env.DB_HOST);
+console.log('DB_USER:', process.env.DB_USER);
+console.log('DB_PASSWORD:', process.env.DB_PASSWORD);
+console.log('DB_NAME:', process.env.DB_NAME);*/
 
-// Importer les routes
-const routes = require('./routes');
-app.use('/api', routes);
-
-// Exemple de route
-app.get('/', (req, res) => {
-    res.send('Hello World');
+const connection = mysql.createConnection({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME
 });
 
-// Démarrer le serveur
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+// Connexion à MySQL
+connection.connect((err) => {
+    if (err) {
+      console.error('Erreur de connexion à MySQL :', err);
+      return;
+    }
+    console.log('Connecté à MySQL !');
+  });
+  
+  // Créer un serveur HTTP simple
+  const http = require('http');
+  
+  const server = http.createServer((req, res) => {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'text/plain');
+    res.end('Bonjour, voici le backend de mon site de cuisine!');
+  });
+  
+  // Le serveur écoute sur le port 3000
+  const port = 4005;
+  server.listen(port, () => {
+    console.log(`Serveur en écoute sur le port ${port}`);
+  });
