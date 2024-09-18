@@ -11,17 +11,22 @@ body {
   font-family: "Montserrat", sans-serif;
 }
 
-.header-logo {
-  display: inline-block;
-  width: 90%;
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* Assure que tout est aligné verticalement sur la même ligne */
   padding: 10px 30px;
 }
+.header-logo {
+  display: inline-block;
+  width: auto;
+  padding: 0;
+  margin-right: 0;
+}
 
-.header-logo a {
-  text-decoration: none;
-  color: #005a48;
-  font-size: 1.5rem;
-  font-weight: bold;
+.header-logo img {
+  height: 100px;
+  background-color: transparent;
 }
 
 .panier {
@@ -53,8 +58,10 @@ body {
 }
 
 .nav {
-  display: inline-block;
-  width: 90%;
+  display: flex;
+  margin: 0;
+  width: 100%;
+  justify-content: center;
 }
 
 .nav-items {
@@ -893,4 +900,12 @@ form button {
   border: 1px solid #ccc;
   width: 30%;
   text-align: center;
+}
+
+
+footer {
+  text-align: center;
+  padding: 20px;
+  background-color:  #145a4c;
+  font-size: 14px;
 }

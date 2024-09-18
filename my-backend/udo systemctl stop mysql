@@ -1,0 +1,13 @@
+Failed to dump process list for 'mysql.service', ignoring: Input/output error
+● mysql.service - MySQL Community Server
+     Loaded: loaded (/lib/systemd/system/mysql.service; enabled; vendor preset: enabled)
+     Active: activating (start) since Mon 2024-09-16 15:03:47 CEST; 759ms ago
+    Process: 98493 ExecStartPre=/usr/share/mysql/mysql-systemd-start pre (code=exited, status=0/SUCCESS)
+   Main PID: 98501 (mysqld)
+     Status: "Server startup in progress"
+      Tasks: 65 (limit: 4585)
+     Memory: 912.0M
+     CGroup: /system.slice/mysql.service
+
+Sep 16 15:03:47 FAT systemd[1]: Stopped MySQL Community Server.
+Sep 16 15:03:47 FAT systemd[1]: Starting MySQL Community Server...

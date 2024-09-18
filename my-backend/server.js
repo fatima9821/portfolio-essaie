@@ -1,5 +1,11 @@
 require('dotenv').config();
+
+const express = require('express');
 const mysql = require('mysql');
+const app = express();
+
+// Middleware pour analyser les corps de requêtes JSON
+app.use(express.json()); 
 
 // Debug: Afficher les variables d'environnement
 /*console.log('DB_HOST:', process.env.DB_HOST);
@@ -23,17 +29,24 @@ connection.connect((err) => {
     console.log('Connecté à MySQL !');
   });
   
-  // Créer un serveur HTTP simple
-  const http = require('http');
-  
-  const server = http.createServer((req, res) => {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/plain');
-    res.end('Bonjour, voici le backend de mon site de cuisine!');
+  // Route principale (page d'accueil)
+app.get('/', (req, res) => {
+  res.send('Bienvenue sur le backend de TUNDE, votre site de cuisine!');
+});
+
+// Exemple de route pour récupérer toutes les recettes
+app.get('/recettes', (req, res) => {
+  const query = 'SELECT * FROM recettes'; // Modifiez cette requête pour correspondre à votre base de données
+  connection.query(query, (err, results) => {
+    if (err) {
+      return res.status(500).send('Erreur lors de la récupération des recettes');
+    }
+    res.json(results); // Renvoie les résultats sous forme de JSON
   });
+});
   
   // Le serveur écoute sur le port 3000
-  const port = 4010;
-  server.listen(port, () => {
+  const port = 4011;
+  app.listen(port, () => {
     console.log(`Serveur en écoute sur le port ${port}`);
-  });
+  });  
