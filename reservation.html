@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Reservation</title>
+</head>
+<body>
+    <header class="header-reservation">
+        <h1 class="site-title">Réservations</h1>
+    </header>
+    
+    <div class="content-container">
+        <!-- Contenu principal à gauche -->
+        <section class="main-content">
+            <h2>Réserver en ligne</h2>
+            <p>Chères Pas Parisiennes, chers Pas Parisiens,</p>
+            <p>Nous tenons à vous remercier d’être si nombreux à fréquenter nos différents bistrots.</p>
+            <p>Nous sommes heureux de vous servir afin que vous puissiez trinquer, rire, déguster, échanger, déjeuner, diner... au sein des BISTROTS PAS PARISIENS.</p>
+            <p>On y mange bien, on s’y sent bien. Bienvenue dans la famille Pas Parisiens !</p>
+        </section>
+    
+        <!-- Barre latérale défilable pour la réservation -->
+        <aside class="reservation-sidebar">
+            <h3>Réservez en ligne</h3>
+            <div class="reservation-box">
+                <p>Book online at <strong>Saperlipopette!</strong></p>
+                <p>Chers Pas Parisiens, Nous avons hâte de vous recevoir...</p>
+                <p>Pour réserver, veuillez indiquer vos détails ci-dessous :</p>
+    
+                <!-- Ajout de l'ID 'reservation-form' -->
+                <form id="reservation-form" action="/confirmation.html" method="POST">
+                    <label for="services">Services :</label>
+                    <select name="services" id="services">
+                        <option value="all">Tous les services</option>
+                        <option value="lunch">Déjeuner</option>
+                        <option value="dinner">Dîner</option> 
+                    </select>
+    
+                    <label for="guests">Nombre d'invités :</label>
+                    <input type="number" id="guests" name="guests" min="1" value="1">
+    
+                    <label for="day">Jour :</label>
+                    <input type="date" id="day" name="day">
+    
+                    <button type="submit">Réserver maintenant</button>
+                </form>
+            </div>
+        </aside>
+    </div>
+    <footer>
+        <p>&copy; 2024 TUNDE. Tous droits réservés.</p>
+    </footer>
+
+    <script>
+        document.getElementById('reservation-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // Empêche le rechargement de la page
+            // Ici tu peux ajouter une validation si nécessaire
+            window.location.href = 'confirmation.html'; // Redirige vers la page de confirmation
+        });
+    </script>
+</body>
+</html>

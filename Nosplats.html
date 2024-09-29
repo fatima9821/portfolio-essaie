@@ -3,20 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/line-awesome/1.3.0/line-awesome/css/line-awesome.min.css">
     <link rel="stylesheet" href="style.css">
-    <title>Document</title>
+    <title>Nos plats</title>
 </head>
 <body>
-    <header class="menul">
-        <div class="titret">
-            <h2 class="titre"><span>M</span>enu</h2>
-            <p class="lettre1">
-                En résumé, la création de composants dans React et leur importation dans d'autres fichiers 
-            </p>
+    <header class="header-hamg">
+        <video autoplay muted loop class="background-video">
+            <source src="img/Rose et Vert Élégant Restaurant Simple et Net YouTube Vidéo Publicité.mp4" type="video/mp4">
+            Votre navigateur ne supporte pas la vidéo.
+        </video>
+        <div class="hamg">
+            <div class="hamburger" id="hamburger">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+              </div>
+            <nav class="nav-menu" id="nav-menu">
+                <ul class="">
+                    <li class="nav-item"><a href="Accueil">Accueil</a></li>
+                    <li class="nav-item"><a href="Quisomnous.html">Qui sommes nous</a></li>
+                    <li class="nav-item"><a href="Nosplats.html">Nos plats</a></li>
+                    <li class="nav-item"><a href="lecoindcf.html">Le Coin des Chefs</a></li>
+                    <li class="nav-item"><a href="contact.html">Nous contactez</a></li>
+                </ul>
+            </nav>
+            <h5><i>LA CARTE</i></h5>
         </div>
     </header>
+    <section>
+    <div class="section-boissons-wrapper">
+    <div class="section-boissons">
+       <h1>Les boissons</h1>
+       <hr>
+    </div>
+    </div>
+    <div class="menu1-section">
+    <div class="menu1-content">
+       <h1>Le Menu</h1>
+       <hr>
+       <h3>Entrée + plat + dessert</h3>
+       <h4>39,99 €</h4>
+       <h1>ENTREES</h1>
+       <p> La Poitrine de cochon / La Volaille
+        / Le poisson du moment (supplément de 3€) / La Tarte Tomate</p>
+        <h1>DESSERTS</h1>
+        <p>La Sphère (supplément de 5€) / La Poire /
+            Le Mojito / Le Café</p>
+        <h5> valable uniquement pour une personne
+        Boissons non comprises</h5>
+    </div>
+    </div>
+    </section>
 
-    
     <section class="menu" id="menu">
         <div class="contenu">
             <div class="box">
@@ -25,6 +64,7 @@
                 </div>
                 <div class="texte">
                     <h3>lasagnes</h3>
+                    <button class="add-to-cart">Ajouter au panier</button> 
                 </div>
             </div>
             <div class="box">
@@ -33,6 +73,7 @@
                 </div>
                 <div class="texte">
                     <h3>des sushis</h3>
+                    <button class="add-to-cart">Ajouter au panier</button> 
                 </div>
             </div>
             <div class="box">
@@ -41,6 +82,7 @@
                 </div>
                 <div class="texte">
                     <h3>Pizza sauce bolognaise</h3>
+                    <button class="add-to-cart">Ajouter au panier</button> 
                 </div>
             </div>
             <div class="box">
@@ -49,6 +91,7 @@
                 </div>
                 <div class="texte">
                     <h3>boeuf mariné</h3>
+                    <button class="add-to-cart">Ajouter au panier</button> 
                 </div>
             </div>
             <div class="box">
@@ -57,6 +100,7 @@
                 </div>
                 <div class="texte">
                     <h3>salade composée</h3>
+                    <button class="add-to-cart">Ajouter au panier</button> 
                 </div>
             </div>
             <div class="box">
@@ -65,6 +109,7 @@
                 </div>
                 <div class="texte">
                     <h3>poulet pané</h3>
+                    <button class="add-to-cart">Ajouter au panier</button> 
                 </div>
             </div>
             <div class="box">
@@ -73,6 +118,7 @@
                 </div>
                 <div class="texte">
                     <h3>viande au four</h3>
+                    <button class="add-to-cart">Ajouter au panier</button> 
                 </div>
             </div>
             <div class="box">
@@ -81,12 +127,103 @@
                 </div>
                 <div class="texte">
                     <h3>poulet braisé</h3>
+                    <button class="add-to-cart">Ajouter au panier</button>
                 </div>
             </div>
         </div>
-        <div class="titret">
-            <a href="#" class="bnt1">voir plus</a>
+        <div class="texte-section">
+        <div class="section_title">ENTREES</div>
+        <div class="section_item">
+            <h1 class="dish-name">LA STRACCIATELLA</h1>
+            <h1 class="dish-price">17€</h1>
+        </div>
+        <div class="menu_descript">
+            <p>Stracciatella, salade de nectarine, abricot, courgettes crues, vinaigrette pêche et huile de noisette, pignons de pins et basilic.
+                Allergènes : Gluten - fruits à coque - sulfites- lactose.
+                
+                🍷 Conseil vin : AOP Domaine de la Croix - Cuvée Irresistible, 2022</p>
+        </div>
+        <div class="section_item">
+            <h1 class="dish-name">LA STRACCIATELLA</h1>
+            <h1 class="dish-price">17€</h1>
+        </div>
+        <div class="menu_descript">
+            <p>Stracciatella, salade de nectarine, abricot, courgettes crues, vinaigrette pêche et huile de noisette, pignons de pins et basilic.
+                Allergènes : Gluten - fruits à coque - sulfites- lactose.
+                
+                🍷 Conseil vin : AOP Domaine de la Croix - Cuvée Irresistible, 2022</p>
+        </div>
+        <div class="section_item">
+            <h1 class="dish-name">LA STRACCIATELLA</h1>
+            <h1 class="dish-price">17€</h1>
+        </div>
+        <div class="menu_descript">
+            <p>Stracciatella, salade de nectarine, abricot, courgettes crues, vinaigrette pêche et huile de noisette, pignons de pins et basilic.
+                Allergènes : Gluten - fruits à coque - sulfites- lactose.
+                
+                🍷 Conseil vin : AOP Domaine de la Croix - Cuvée Irresistible, 2022</p>
+        </div>
+        <div class="section_item">
+            <h1 class="dish-name">LA STRACCIATELLA</h1>
+            <h1 class="dish-price">17€</h1>
+        </div>
+        <div class="menu_descript">
+            <p>Stracciatella, salade de nectarine, abricot, courgettes crues, vinaigrette pêche et huile de noisette, pignons de pins et basilic.
+                Allergènes : Gluten - fruits à coque - sulfites- lactose.
+                
+                🍷 Conseil vin : AOP Domaine de la Croix - Cuvée Irresistible, 2022</p>
+        </div>
         </div>
     </section>
+    <div class="titret">
+        <a href="#" class="bnt1">voir plus</a>
+    </div>
+    <div class="section-boissons-wrapper">
+        <div class="section-boissons">
+           <h1>Accords mets et vins</h1>
+           <hr>
+           <p>🍷 Suggestions de notre sommelier </p>
+           <p> 3 verres </p>
+            <p>24,99 €</p>
+        </div>
+        </div>
+        <div class="bastext">
+            <p>** garniture avec du lard</p>
+            <p>*** hors plat signature et suppléments</p>
+            <p>Prix net en TTC. Service compris.</p>
+        </div>
+        <div class="footer1">
+            <div class="footer-container_logo">
+                <a href="/"><img src="img/Neutral Ilustrated Restaurant Logo.png" alt="ceci est le logo du site"></a>
+            </div>
+            <div class="footer_info">
+                <p class="footer_title">RESTAURANT TUNDE!</p>
+                <p>0010101044</p>
+                <p>Nous trouver</p>
+                <p>2024 - Mentions Legales - FAT - Agence Web
+                    5 Rue Rigaud </p>
+            </div>
+                <div class="footer_social">
+                  <h3>Suivez nous</h3>
+                  <div class="footer_icon">
+                    <span><i class="lab la-twitter"></i></span>
+                    <span><i class="lab la-instagram"></i></span>
+                    <span><i class="lab la-facebook-f"></i></span>
+                    <span><i class="lab la-linkedin-in"></i></span>
+                  </div>
+              </div>
+        </div>
+    <script src="script.js"></script>
+    <script>
+        // Sélection des éléments
+        const hamburger = document.getElementById('hamburger');
+        const navMenu = document.getElementById('nav-menu');
+      
+        // Ajoute l'événement au clic pour afficher/masquer le menu
+        hamburger.addEventListener('click', () => {
+          navMenu.classList.toggle('active'); // Ajoute ou retire la classe active
+        });
+      </script>
+      </body>      
 </body>
 </html>
