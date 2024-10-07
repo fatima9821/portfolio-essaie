@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmation de réservation</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@glidejs/glide@3.6.2/dist/glide.min.js"></script>
+</head>
+<body>
+
+<section class="reservation-confirmation">
+    <h2>Confirmer la réservation</h2>
+    <form action="/submit-reservation" method="POST">
+        <!-- Informations personnelles -->
+        <label for="first-name">Prénom *</label>
+        <input type="text" id="first-name" name="first-name" required>
+
+        <label for="last-name">Nom *</label>
+        <input type="text" id="last-name" name="last-name" required>
+
+        <label for="phone">Numéro de téléphone *</label>
+        <div class="phone-section">
+            <select name="country-code" id="country-code" required>
+                <option value="+33">+33 (FR)</option>
+                <!-- Ajoute d'autres codes plays -->
+            </select>
+            <input type="tel" id="phone" name="phone" placeholder="Mobile *" required>
+        </div>
+
+        <label for="email">Email *</label>
+        <input type="email" id="email" name="email" required>
+
+        <label for="message">Laisser un message pour le restaurant</label>
+        <textarea id="message" name="message" placeholder="Laisser un message pour le restaurant"></textarea>
+
+        <!-- Politique de confidentialité -->
+        <p class="privacy-notice">
+            En confirmant ma réservation, j'accepte les <a href="#">termes et conditions</a>.
+            <br>
+            Données personnelles : Nous traitons vos données personnelles pour gérer les services que nous vous fournissons. Consultez notre <a href="#">politique de confidentialité</a>.
+        </p>
+
+        <!-- Bouton de validation -->
+        <button type="submit" class="submit-btn">Valider la demande de réservation</button>
+    </form>
+
+    <footer>
+        <p>Powered by Guestonline</p>
+    </footer>
+</section>
+<script src="script.js"></script>
+<script>
+    document.getElementById('confirmation-form').addEventListener('submit', function(event) {
+        event.preventDefault(); // Empêche le rechargement de la page
+
+        // Récupération des données du formulaire
+        const firstName = document.getElementById('first-name').value;
+        const lastName = document.getElementById('last-name').value;
+        const phone = document.getElementById('phone').value;
+        const countryCode = document.getElementById('country-code').value;
+        const email = document.getElementById('email').value;
+        const message = document.getElementById('message').value;
+
+        // Création de l'objet à envoyer au serveur
+        const reservationData = {
+            firstName,
+            lastName,
+            phone: `${countryCode} ${phone}`,  // Combine country code and phone number
+            email,
+            message
+        };
+
+        // Envoi de la requête POST au serveur
+        fetch('http://localhost:4011/reservation', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(reservationData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                alert(data.message); // Affiche un message de confirmation
+                window.location.href = '/confirmation.html'; // Redirige vers la page de confirmation
+            } else {
+                alert('Erreur lors de la réservation.');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur lors de la requête:', error);
+            alert('Une erreur est survenue.');
+        });
+    });
+</script>
+
+</body>
+</html>
