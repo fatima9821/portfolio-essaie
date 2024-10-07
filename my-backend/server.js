@@ -6,10 +6,25 @@ const nodemailer = require('nodemailer'); // Ajouter nodemailer pour l'envoi d'e
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const path = require('path');
 const app = express();
+
+// Configuration de multer pour le stockage des fichiers
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/'); // Dossier où les images seront stockées
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname)); // Nom unique pour chaque fichier
+  }
+});
+
+const upload = multer({ storage: storage });
 
 // Middleware pour analyser les corps de requêtes JSON
 app.use(express.json());
+app.use(express.static('public'));  // ou 'frontend', selon le nom du dossier
 app.use(express.urlencoded({ extended: true })); // Pour traiter les données des formulaires
 
 // Debug: Afficher les variables d'environnement
@@ -92,22 +107,23 @@ function sendConfirmationEmail(name, email, date, time) {
 
 // Route pour gérer les réservations
 app.post('/reservation', (req, res) => {
-  const { name, email, date, time, guests } = req.body;
+  console.log(req.body); 
+  const { firstname, lastname, email, date, phone, time, guests, services, message } = req.body;
 
-  if (!name || !email || !date || !time || !guests) {
+  if (!firstname || !lastname || !email || !date || !phone || !time || !guests || !services || !message) {
     return res.status(400).send('Tous les champs sont requis');
   }
 
   // Insertion des données de réservation dans MySQL
-  const sql = "INSERT INTO reservations (name, email, date, time, guests) VALUES (?, ?, ?, ?, ?)";
-  connection.query(sql, [name, email, date, time, guests], (err, result) => {
+  const sql = "INSERT INTO reservations (firstname, lastname, email, date, phone, time, guests, services, message) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+  connection.query(sql, [firstname, lastname, email, date, phone, time, guests, services, message], (err, result) => {
     if (err) {
       console.error('Erreur lors de l\'insertion dans la base de données', err);
       return res.status(500).send('Erreur du serveur');
     }
 
     // Envoi de l'email de confirmation
-    sendConfirmationEmail(name, email, date, time);
+    sendConfirmationEmail(firstname, email, date, time);
 
     res.send('Réservation enregistrée avec succès. Un email de confirmation vous a été envoyé.');
   });
@@ -205,18 +221,24 @@ app.post('/login', (req, res) => {
   });
 });
 
-// Route pour publier une recette
-app.post('/recipes', authenticateToken, (req, res) => {
+// Route pour publier une recette avec une image
+app.post('/recipes', authenticateToken, upload.single('image'), (req, res) => {
   const { title, ingredients, instructions } = req.body;
   const userId = req.user.id; // Récupéré à partir du token
+  const image = req.file ? req.file.filename : null; // Le nom de l'image téléchargée
+
+  // Vérifie que tous les champs sont présents
+  if (!title || !ingredients || !instructions || !image) {
+    return res.status(400).send('Tous les champs sont requis, y compris l\'image.');
+  }
 
   // Insertion de la recette dans la base de données
-  const sql = "INSERT INTO recipes (user_id, title, ingredients, instructions) VALUES (?, ?, ?, ?)";
-  connection.query(sql, [userId, title, ingredients, instructions], (err, result) => {
+  const sql = "INSERT INTO recipes (user_id, title, ingredients, instructions, image) VALUES (?, ?, ?, ?, ?)";
+  connection.query(sql, [userId, title, ingredients, instructions, image], (err, result) => {
     if (err) {
       return res.status(500).send('Erreur lors de la publication de la recette');
     }
-    
+
     // Retourner une réponse claire après l'insertion
     res.status(200).json({
       message: 'Recette publiée avec succès',
