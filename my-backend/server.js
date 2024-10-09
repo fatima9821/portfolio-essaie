@@ -8,6 +8,7 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
+const cors = require('cors');
 const app = express();
 
 // Configuration de multer pour le stockage des fichiers
@@ -24,6 +25,7 @@ const upload = multer({ storage: storage });
 
 // Middleware pour analyser les corps de requêtes JSON
 app.use(express.json());
+app.use(cors());
 app.use(express.static('public'));  // ou 'frontend', selon le nom du dossier
 app.use(express.urlencoded({ extended: true })); // Pour traiter les données des formulaires
 
@@ -73,11 +75,24 @@ connection.connect((err) => {
       }
     });
   }
+
+  app.use((req, res, next) => {
+    res.setHeader("Content-Security-Policy", "default-src 'self'; style-src 'self' https://www.gstatic.com; script-src 'self' https://cdn.jsdelivr.net");
+    next();
+});
+
   
   // Route principale (page d'accueil)
 app.get('/', (req, res) => {
   res.send('Bienvenue sur le backend de TUNDE, votre site de cuisine!');
 });
+
+app.use(cors({
+  origin: 'http://localhost:4011', // ou l'URL de ton front-end
+  methods: 'GET,POST,PUT,DELETE',
+  credentials: true
+}));
+
 
 // Fonction pour envoyer un email de confirmation
 function sendConfirmationEmail(name, email, date, time) {
@@ -421,6 +436,51 @@ app.get('/recipes/:id/comments', (req, res) => {
       return res.status(500).send('Erreur lors de la récupération des commentaires');
     }
     res.json(results);
+  });
+});
+
+// Route pour gérer le formulaire de contact
+app.post('/contact', (req, res) => {
+  const { fullname, email, message } = req.body;
+
+  // Validation des champs
+  if (!fullname || !email || !message) {
+    return res.status(400).send('Tous les champs sont requis');
+  }
+
+  // Insertion des données de contact dans la base de données
+  const sql = "INSERT INTO contacts (fullname, email, message) VALUES (?, ?, ?)";
+  connection.query(sql, [fullname, email, message], (err, result) => {
+    if (err) {
+      console.error('Erreur lors de l\'insertion dans la base de données', err);
+      return res.status(500).send('Erreur du serveur');
+    }
+
+    // Préparer l'email à envoyer
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: process.env.EMAIL_RECEIVER, // L'adresse où tu veux recevoir les messages de contact
+      subject: 'Nouveau message du formulaire de contact',
+      text: `Nom complet : ${fullname}\nEmail : ${email}\nMessage : ${message}`
+    };
+
+    // Envoi de l'email
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Erreur lors de l\'envoi du message de contact :', error);
+        return res.status(500).send('Erreur lors de l\'envoi du message');
+      } else {
+        res.status(200).send('Votre message a été envoyé avec succès et enregistré dans la base de données.');
+      }
+    });
   });
 });
   
