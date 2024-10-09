@@ -12,21 +12,23 @@
             <h5 class="titre-texte"><span>F</span>ormulaire</h5>
             <h1>CONTACT</h1>
         </div>
+        <form id="contact-form">
         <div class="contactfrom">
             <h3>Envoyez un message</h3>
             <div class="inputboite">
-                <input type="text" placeholder="nom">
+                <input type="text" id="fullname" name="fullname" placeholder="nom complet">
             </div>
             <div class="inputboite">
-                <input type="text" placeholder="email">
+                <input type="text" id="email" name="email" placeholder="email">
             </div>
             <div class="inputboite">
-                <textarea placeholder="message"></textarea>
+                <textarea id="message" name="message" placeholder="message"></textarea>
             </div>
             <div class="inputboite">
                 <input type="submit" value="Envoyez">
             </div>
         </div>
+        </form>
     </section>
     <div class="pa">
         <h1><span class="h">H</span>oraire</h1>
@@ -38,5 +40,48 @@
 
         <h5>Le restaurant TUNDE by FATIMA</h5>
     </div>
+    <script>
+        // Sélectionner le formulaire de contact
+        const contactForm = document.getElementById('contact-form');
+        
+        // Ajouter un événement pour gérer la soumission du formulaire
+        contactForm.addEventListener('submit', async (event) => {
+            event.preventDefault(); // Empêcher le rechargement de la page
+    
+            // Récupérer les valeurs des champs
+            const fullname = document.getElementById('fullname').value;
+            const email = document.getElementById('email').value;
+            const message = document.getElementById('message').value;
+    
+            // Vérifier si tous les champs sont remplis
+            if (!fullname || !email || !message) {
+                alert('Tous les champs sont requis');
+                return;
+            }
+    
+            // Envoyer les données via Fetch API à ton back-end
+            try {
+                const response = await fetch('http://localhost:4011/contact', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ fullname, email, message })
+                });
+    
+                const result = await response.text();
+                if (response.ok) {
+                    alert('Votre message a été envoyé avec succès !');
+                    contactForm.reset();  // Réinitialiser le formulaire
+                } else {
+                    alert('Erreur : ' + result);
+                }
+            } catch (error) {
+                console.error('Erreur lors de l\'envoi du message de contact', error);
+                alert('Erreur lors de l\'envoi du message');
+            }
+        });
+    </script>
+    
 </body>
 </html>
