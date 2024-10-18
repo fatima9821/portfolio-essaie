@@ -11,13 +11,13 @@
 
 <section class="reservation-confirmation">
     <h2>Confirmer la réservation</h2>
-    <form action="/submit-reservation" method="POST">
+    <form id="confirmation-form" action="/submit-reservation" method="POST">
         <!-- Informations personnelles -->
-        <label for="first-name">Prénom *</label>
-        <input type="text" id="first-name" name="first-name" required>
+        <label for="firstname">Prénom *</label>
+        <input type="text" id="firstname" name="firstname" required>
 
-        <label for="last-name">Nom *</label>
-        <input type="text" id="last-name" name="last-name" required>
+        <label for="lastname">Nom *</label>
+        <input type="text" id="lastname" name="lastname" required>
 
         <label for="phone">Numéro de téléphone *</label>
         <div class="phone-section">
@@ -31,6 +31,19 @@
         <label for="email">Email *</label>
         <input type="email" id="email" name="email" required>
 
+        <label for="services">Services :</label>
+        <select name="services" id="services">
+        <option value="all">Tous les services</option>
+        <option value="lunch">Déjeuner</option>
+        <option value="dinner">Dîner</option> 
+        </select>
+    
+        <label for="guests">Nombre d'invités :</label>
+        <input type="number" id="guests" name="guests" min="1" value="1">
+    
+        <label for="day">Jour :</label>
+        <input type="date" id="day" name="day">
+    
         <label for="message">Laisser un message pour le restaurant</label>
         <textarea id="message" name="message" placeholder="Laisser un message pour le restaurant"></textarea>
 
@@ -50,6 +63,57 @@
     </footer>
 </section>
 <script src="script.js"></script>
+<script>
+    document.getElementById('confirmation-form').addEventListener('submit', async (event) => {
+        event.preventDefault(); // Empêche le rechargement de la page
+
+        const firstname = document.getElementById('firstname').value;
+        const lastname = document.getElementById('lastname').value;
+        const email = document.getElementById('email').value;
+        const phone = document.getElementById('phone').value;
+        const services = document.getElementById('services').value;
+        const guests = document.getElementById('guests').value;
+        const day = document.getElementById('day').value;
+        const message = document.getElementById('message').value;
+
+        // Vérifier que tous les champs sont remplis
+        if (!firstname || !lastname || !email || !phone || !services || !guests || !day) {
+            alert('Tous les champs doivent être remplis.');
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:4011/reservation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    firstname,
+                    lastname,
+                    email,
+                    phone,
+                    services,
+                    guests,
+                    date: day,  // La date
+                    time: '19:00',  // Heure par défaut ou modifiable
+                    message
+                })
+            });
+
+            const result = await response.text();
+            if (response.ok) {
+                alert('Votre réservation a été envoyée avec succès !');
+                window.location.href = 'confirmation_success.html';  // Rediriger vers une page de succès
+            } else {
+                alert('Erreur : ' + result);
+            }
+        } catch (error) {
+            console.error('Erreur lors de l\'envoi de la réservation', error);
+            alert('Erreur lors de l\'envoi de la réservation');
+        }
+    });
+</script>
 
 </body>
 </html>

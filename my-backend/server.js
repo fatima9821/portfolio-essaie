@@ -7,6 +7,7 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
+const bodyParser = require('body-parser');
 const path = require('path');
 const cors = require('cors');
 const app = express();
@@ -17,6 +18,7 @@ const storage = multer.diskStorage({
     cb(null, 'uploads/'); // Dossier où les images seront stockées
   },
   filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, Date.now() + path.extname(file.originalname)); // Nom unique pour chaque fichier
   }
 });
@@ -28,6 +30,9 @@ app.use(express.json());
 app.use(cors());
 app.use(express.static('public'));  // ou 'frontend', selon le nom du dossier
 app.use(express.urlencoded({ extended: true })); // Pour traiter les données des formulaires
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Debug: Afficher les variables d'environnement
 /*console.log('DB_HOST:', process.env.DB_HOST);
@@ -76,11 +81,27 @@ connection.connect((err) => {
     });
   }
 
+  function authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+  
+    if (!token) return res.sendStatus(401); // Pas de token fourni
+  
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+      if (err) {
+        console.error('Erreur de vérification du token:', err);
+        return res.sendStatus(403); // Token invalide
+      }
+      req.user = user;
+      next();
+    });
+  }
+
+  
   app.use((req, res, next) => {
-    res.setHeader("Content-Security-Policy", "default-src 'self'; style-src 'self' https://www.gstatic.com; script-src 'self' https://cdn.jsdelivr.net");
+    res.setHeader("Content-Security-Policy", "default-src 'self'; img-src 'self' data:; style-src 'self' https://www.gstatic.com; script-src 'self' https://cdn.jsdelivr.net");
     next();
 });
-
   
   // Route principale (page d'accueil)
 app.get('/', (req, res) => {
@@ -92,7 +113,6 @@ app.use(cors({
   methods: 'GET,POST,PUT,DELETE',
   credentials: true
 }));
-
 
 // Fonction pour envoyer un email de confirmation
 function sendConfirmationEmail(name, email, date, time) {
@@ -120,6 +140,14 @@ function sendConfirmationEmail(name, email, date, time) {
   });
 }
 
+// Middleware pour vérifier si l'utilisateur est un admin
+function isAdmin(req, res, next) {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).send('Accès refusé : administrateurs uniquement');
+  }
+  next();
+}
+
 // Route pour gérer les réservations
 app.post('/reservation', (req, res) => {
   console.log(req.body); 
@@ -144,54 +172,50 @@ app.post('/reservation', (req, res) => {
   });
 });
 
-// Route pour l'inscription
+// Route pour l'inscription sans vérification par email
 app.post('/register', (req, res) => {
   const { username, email, password } = req.body;
+  console.log(req.body);  // Ajoute cette ligne pour voir ce que le serveur reçoit
 
   if (!username || !email || !password) {
-    return res.status(400).send('Tous les champs sont requis');
+    return res.status(400).json({ message: 'Tous les champs sont requis' });  // Utiliser JSON pour l'erreur
   }
 
-   // Vérifier si l'email existe déjà
-   const checkEmailSql = "SELECT * FROM users WHERE email = ?";
-   connection.query(checkEmailSql, [email], (err, results) => {
-     if (err) {
-       console.error('Erreur lors de la vérification de l\'email :', err.sqlMessage || err);  // Log l'erreur SQL exacte
-       return res.status(500).send('Erreur lors de la vérification de l\'email');
-     }
- 
-     if (results.length > 0) {
-       return res.status(400).send('Cet email est déjà utilisé');
-     }
- 
-     // Si l'email n'existe pas, continuer avec l'inscription
-     bcrypt.hash(password, 10, (err, hash) => {
-       if (err) {
-         console.error('Erreur lors du hachage du mot de passe :', err);
-         return res.status(500).send('Erreur lors du hachage du mot de passe');
-       }
+  // Vérifier si l'email existe déjà
+  const checkEmailSql = "SELECT * FROM users WHERE email = ?";
+  connection.query(checkEmailSql, [email], (err, results) => {
+    if (err) {
+      console.error('Erreur lors de la vérification de l\'email :', err);
+      return res.status(500).json({ message: 'Erreur lors de la vérification de l\'email' });  // Envoie un message en JSON
+    }
 
-    // Ajout d'un rôle par défaut 'user'
-       const role = 'user'; // Les utilisateurs normaux auront le rôle 
- 
-       // Générer un token unique
-       const token = crypto.randomBytes(32).toString('hex');
- 
-       const sql = "INSERT INTO users (username, email, password, token) VALUES (?, ?, ?, ?)";
-       connection.query(sql, [username, email, hash, token], (err, result) => {
-         if (err) {
-           console.error('Erreur lors de l\'insertion dans la base de données :', err.sqlMessage || err);  // Log l'erreur SQL exacte
-           return res.status(500).send('Erreur lors de l\'inscription');
-         }
- 
-         // Envoi de l'email de vérification
-         sendVerificationEmail(username, email, token);
- 
-         res.send('Inscription réussie, veuillez vérifier votre email');
-       });
-     });
-   });
- });
+    if (results.length > 0) {
+      return res.status(400).json({ message: 'Cet email est déjà utilisé' });
+    }
+
+    // Si l'email n'existe pas, continuer avec l'inscription
+    bcrypt.hash(password, 10, (err, hash) => {
+      if (err) {
+        console.error('Erreur lors du hachage du mot de passe :', err);
+        return res.status(500).json({ message: 'Erreur lors du hachage du mot de passe' });  // Envoie un message en JSON
+      }
+
+      const token = crypto.randomBytes(32).toString('hex');
+
+      const sql = "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)";
+      connection.query(sql, [username, email, hash, 'user'], (err, result) => {
+        if (err) {
+          console.error('Erreur lors de l\'insertion dans la base de données :', err.sqlMessage || err);
+          return res.status(500).json({ message: 'Erreur lors de l\'inscription' }); 
+        }
+
+        // Message de succès sans vérification de mail
+        return res.status(200).json({ message: 'Inscription réussie !' });  // Envoie un message en JSON
+      });
+    });
+  });
+});
+
 
 // Route pour la connexion avec génération du token JWT
 app.post('/login', (req, res) => {
@@ -247,10 +271,13 @@ app.post('/recipes', authenticateToken, upload.single('image'), (req, res) => {
     return res.status(400).send('Tous les champs sont requis, y compris l\'image.');
   }
 
+  console.log('Image path:', image); // Vérifie le chemin de l'image
+
   // Insertion de la recette dans la base de données
   const sql = "INSERT INTO recipes (user_id, title, ingredients, instructions, image) VALUES (?, ?, ?, ?, ?)";
   connection.query(sql, [userId, title, ingredients, instructions, image], (err, result) => {
     if (err) {
+      console.error('Erreur lors de la publication de la recette :', err);
       return res.status(500).send('Erreur lors de la publication de la recette');
     }
 
@@ -266,35 +293,17 @@ app.post('/recipes', authenticateToken, upload.single('image'), (req, res) => {
 // Route pour récupérer toutes les recettes
 app.get('/recipes', (req, res) => {
   const sql = `
-    SELECT r.id, r.title, r.ingredients, r.instructions, u.username 
+    SELECT r.id, r.title, r.ingredients, r.instructions, u.username, r.image 
     FROM recipes r 
     JOIN users u ON r.user_id = u.id
   `;
   connection.query(sql, (err, results) => {
     if (err) {
+      console.error('Erreur lors de la récupération des recettes :', err);
       return res.status(500).send('Erreur lors de la récupération des recettes');
     }
+    console.log('Recipes:', results); // Vérifie les résultats
     res.json(results);
-  });
-});
-
-app.get('/verify-email', (req, res) => {
-  const { token } = req.query; // Le token est récupéré dans l'URL
-
-  const sql = "SELECT * FROM users WHERE token = ?";
-  connection.query(sql, [token], (err, results) => {
-    if (err || results.length === 0) {
-      return res.status(400).send('Lien de vérification invalide');
-    }
-
-    // Si le token est valide, on marque l'utilisateur comme vérifié
-    const updateSql = "UPDATE users SET is_verified = TRUE, token = NULL WHERE token = ?";
-    connection.query(updateSql, [token], (err, result) => {
-      if (err) {
-        return res.status(500).send('Erreur lors de la vérification');
-      }
-      res.send('Votre email a été vérifié avec succès');
-    });
   });
 });
 
@@ -357,17 +366,17 @@ function authenticateToken(req, res, next) {
   });
 }
 
-// Middleware pour vérifier si l'utilisateur est un admin
-function isAdmin(req, res, next) {
-  if (!req.user || req.user.role !== 'admin') {
-    return res.status(403).send('Accès refusé : administrateurs uniquement');
-  }
-  next();
-}
 // Protéger la route de publication des recettes
 app.post('/recipes', authenticateToken, (req, res) => {
   const { title, ingredients, instructions } = req.body;
   const userId = req.user.id; // Récupéré à partir du token
+  const image = req.file ? req.file.filename : null; // Le nom de l'image téléchargée
+
+  if (!title || !ingredients || !instructions || !image) {
+    return res.status(400).send('Tous les champs sont requis, y compris l\'image.');
+  }
+
+  console.log('Image path:', image); // Vérifie le chemin de l'image
 
   // Insertion de la recette dans la base de données
   const sql = "INSERT INTO recipes (user_id, title, ingredients, instructions) VALUES (?, ?, ?, ?)";
@@ -375,7 +384,11 @@ app.post('/recipes', authenticateToken, (req, res) => {
     if (err) {
       return res.status(500).send('Erreur lors de la publication de la recette');
     }
-    res.send('Recette publiée avec succès');
+
+    res.status(200).json({
+      message: 'Recette publiée avec succès',
+      recipeId: result.insertId
+    });
   });
 });
 

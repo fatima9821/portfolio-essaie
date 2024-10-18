@@ -15,7 +15,7 @@
 
     <section class="signup-section">
         <h2>Inscription</h2>
-        <form action="dashboard.html" method="POST">
+        <form id="signup-form" method="POST">
             <label for="name">Nom complet :</label>
             <input type="text" id="name" name="name" required>
 
@@ -33,5 +33,26 @@
     <footer>
         <p>TUNDE - Du bonheur sous la langue</p>
     </footer>
+    <script>
+    document.getElementById('signup-form').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const username = document.getElementById('username').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        
+        const response = await fetch('http://localhost:4011/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, email, password })
+        });
+        
+        const result = await response.json();
+        if (response.ok) {
+            window.location.href = 'publier-recette.html';
+        } else {
+            alert('Échec de l\'inscription : ' + result.message);
+        }
+    });
+</script>
 </body>
 </html>

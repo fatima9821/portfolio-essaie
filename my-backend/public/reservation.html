@@ -30,7 +30,7 @@
                 <p>Pour réserver, veuillez indiquer vos détails ci-dessous :</p>
     
                 <!-- Ajout de l'ID 'reservation-form' -->
-                <form id="reservation-form" action="/confirmation.html" method="POST">
+                <form id="reservation-form">
                     <label for="services">Services :</label>
                     <select name="services" id="services">
                         <option value="all">Tous les services</option>
@@ -44,7 +44,7 @@
                     <label for="day">Jour :</label>
                     <input type="date" id="day" name="day">
     
-                    <button type="submit">Réserver maintenant</button>
+                    <button type="submit" onclick="window.location.href='confirmation.html'">Réserver maintenant</button>
                 </form>
             </div>
         </aside>
@@ -52,13 +52,5 @@
     <footer>
         <p>&copy; 2024 TUNDE. Tous droits réservés.</p>
     </footer>
-
-    <script>
-        document.getElementById('reservation-form').addEventListener('submit', function(event) {
-            event.preventDefault(); // Empêche le rechargement de la page
-            // Ici tu peux ajouter une validation si nécessaire
-            window.location.href = 'confirmation.html'; // Redirige vers la page de confirmation
-        });
-    </script>
 </body>
 </html>

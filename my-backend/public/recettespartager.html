@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recettes Publiées</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/line-awesome/1.3.0/line-awesome/css/line-awesome.min.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="index.html">Accueil</a></li>
+                <li><a href="nosplats.html">Nos Plats</a></li>
+                <li><a href="partager.html">Partager une Recette</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+            <div class="nav-search">
+                <div class="nav-search__el">
+                    <i class="las la-search"></i>
+                    <input type="text" placeholder="Recherche" class="search-ip"/>
+                </div>
+            </div>
+            <div class="login-container">
+                <div class="login-icon">
+                    <i class="las la-user-circle"></i>
+                </div>
+                <div class="dropdown-menu">
+                    <a href="login.html" id="login">Connexion</a>
+                    <a href="signup.html" id="signup">Inscription</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>Recettes Publiées</h1>
+        <p>Découvrez les recettes partagées par nos utilisateurs passionnés !</p>
+    </section>
+
+    <section class="recipes">
+        <h2>Recettes Récemment Publiées</h2>
+        <div id="recipe-list">
+            <!-- Les recettes publiées seront affichées ici -->
+        </div>
+    </section>
+
+    <footer>
+        <p>TUNDE - Du bonheur sous la langue</p>
+    </footer>
+    <script src="script.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', async () => {
+          try {
+              const token = localStorage.getItem('token');  // Récupère le token JWT depuis le localStorage
+
+              if (!token) {
+                  alert('Vous devez être connecté pour voir les recettes.');
+                  return;
+              }
+
+              const response = await fetch('http://localhost:4011/recipes', {
+                  headers: {
+                      'Authorization': 'Bearer ' + token  // Ajout du JWT dans les en-têtes
+                  }
+              });
+
+              if (!response.ok) {
+                  throw new Error(`HTTP error! status: ${response.status}`);
+              }
+
+              const recipes = await response.json();
+              const recipeList = document.getElementById('recipe-list');
+              recipeList.innerHTML = '';  // Réinitialisation de la liste
+
+              // Parcourir les recettes et les ajouter à la page
+              recipes.forEach(recipe => {
+                  const recipeItem = document.createElement('div');
+                  recipeItem.className = 'recipe-item';
+                  const imagePath = recipe.image ? `/uploads/${recipe.image}` : '';
+                  console.log('Image path:', imagePath);  // Vérifie le chemin de l'image
+                  recipeItem.innerHTML = `
+                      <h3>${recipe.title}</h3>
+                      <p><strong>Ingrédients:</strong> ${recipe.ingredients}</p>
+                      <p><strong>Instructions:</strong> ${recipe.instructions}</p>
+                      <p><strong>Publié par:</strong> ${recipe.username}</p>
+                      ${imagePath ? `<img src="${imagePath}" alt="${recipe.title}">` : ''}
+                  `;
+                  recipeList.appendChild(recipeItem);
+              });
+          } catch (error) {
+              console.error('Erreur lors de la récupération des recettes:', error.message, error);
+              alert('Erreur lors de la récupération des recettes');
+          }
+      });
+  </script>
+</body>
+</html>

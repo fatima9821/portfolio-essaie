@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion ou Inscription</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Effet de flou */
+        .blur-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('img/Black\ Cyan\ Modern\ Minimalist\ Restaurant\ and\ Cafe\ Logo.png') no-repeat center center fixed; /* Image de fond */
+            background-size: cover;
+            filter: blur(10px); /* Effet de flou */
+            z-index: 1;
+        }
+
+        .form-container {
+            position: relative;
+            z-index: 2;
+            margin: 100px auto;
+            width: 300px;
+            background-color: rgba(255, 255, 255, 0.9); /* Fond semi-transparent */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-container h2 {
+            text-align: center;
+        }
+
+        .form-container input[type="email"],
+        .form-container input[type="password"],
+        .form-container input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .form-container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #ff6347;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .form-container button:hover {
+            background-color: #ff4500;
+        }
+
+        .form-container p {
+            text-align: center;
+        }
+
+        .form-container a {
+            color: #ff6347;
+            text-decoration: none;
+        }
+
+        .form-container a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="blur-background"></div>
+
+<div class="form-container">
+    <h2 id="form-title">Connexion</h2>
+    <form id="auth-form">
+        <input type="text" id="username" name="username" placeholder="Nom complet" style="display: none;">
+        <input type="email" id="email" name="email" placeholder="Email" required>
+        <input type="password" id="password" name="password" placeholder="Mot de passe" required>
+        <button type="submit">Se connecter</button>
+    </form>
+    <p id="toggle-text">Pas encore inscrit ? <a href="#" id="switch-signup">S'inscrire ici</a></p>
+</div>
+
+<script>
+    let isLogin = true;
+
+    // Basculer entre connexion et inscription
+    function toggleForm() {
+        isLogin = !isLogin;
+
+        const formTitle = document.getElementById('form-title');
+        const usernameInput = document.getElementById('username');
+        const submitButton = document.querySelector('.form-container button');
+        const toggleText = document.getElementById('toggle-text');
+
+        if (isLogin) {
+            formTitle.textContent = 'Connexion';
+            usernameInput.style.display = 'none';
+            submitButton.textContent = 'Se connecter';
+            toggleText.innerHTML = 'Pas encore inscrit ? <a href="#" id="switch-signup">S\'inscrire ici</a>';
+        } else {
+            formTitle.textContent = 'Inscription';
+            usernameInput.style.display = 'block';
+            submitButton.textContent = 'S\'inscrire';
+            toggleText.innerHTML = 'Déjà inscrit ? <a href="#" id="switch-signup">Se connecter ici</a>';
+        }
+
+        // Réattacher l'événement au nouveau lien
+        document.getElementById('switch-signup').addEventListener('click', function(event) {
+            event.preventDefault();
+            toggleForm();
+        });
+    }
+
+    // Initialisation pour attacher l'événement dès le chargement
+    document.getElementById('switch-signup').addEventListener('click', function(event) {
+        event.preventDefault();
+        toggleForm();
+    });
+
+    // Gestion de la soumission du formulaire
+    document.getElementById('auth-form').addEventListener('submit', async function(event) {
+        event.preventDefault(); // Empêche le rechargement de la page
+
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const username = !isLogin ? document.getElementById('username').value : null;  // Obtenir l'username seulement lors de l'inscription
+
+    const url = isLogin ? 'http://localhost:4011/login' : 'http://localhost:4011/register';
+    const body = isLogin ? { email, password } : { username, email, password };
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
+
+        // Analyser la réponse sous forme de texte
+        const resultText = await response.text();
+            let result;
+
+            // Tenter de parser la réponse comme JSON si possible
+            try {
+                result = JSON.parse(resultText);
+            } catch (error) {
+                console.error('La réponse n\'est pas un JSON valide :', resultText);
+                alert('Erreur lors de la requête : Réponse non JSON reçue.');
+                return;
+            }
+
+            console.log('Réponse reçue:', result);  // Afficher la réponse dans la console
+
+            if (response.ok) {
+                if (isLogin) {
+                    // Stocker le token JWT pour la connexion
+                    localStorage.setItem('token', result.token);
+                    window.location.href = 'lecoindcf.html';  // Redirection après connexion
+                } else {
+                    alert('Inscription réussie ! Veuillez vous connecter.');
+                    toggleForm();  // Basculer vers la connexion après l'inscription réussie
+                }
+            } else {
+                alert('Erreur : ' + JSON.stringify(result));  // Affiche l'objet d'erreur complet
+            }
+        } catch (error) {
+            console.error('Erreur lors de la requête :', error);
+            alert('Erreur lors de la requête');
+        }
+    });
+        
+</script>
+
+</body>
+</html>

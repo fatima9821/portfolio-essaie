@@ -11,19 +11,19 @@
 
 <section class="reservation-confirmation">
     <h2>Confirmer la réservation</h2>
-    <form action="/submit-reservation" method="POST">
+    <form id="confirmation-form" action="/reservation" method="POST">
         <!-- Informations personnelles -->
-        <label for="first-name">Prénom *</label>
-        <input type="text" id="first-name" name="first-name" required>
+        <label for="firstname">Prénom *</label>
+        <input type="text" id="firstname" name="firstname" required>
 
-        <label for="last-name">Nom *</label>
-        <input type="text" id="last-name" name="last-name" required>
+        <label for="lastname">Nom *</label>
+        <input type="text" id="lastname" name="lastname" required>
 
         <label for="phone">Numéro de téléphone *</label>
         <div class="phone-section">
             <select name="country-code" id="country-code" required>
                 <option value="+33">+33 (FR)</option>
-                <!-- Ajoute d'autres codes plays -->
+                <!-- Ajouter d'autres codes pays si besoin -->
             </select>
             <input type="tel" id="phone" name="phone" placeholder="Mobile *" required>
         </div>
@@ -31,6 +31,19 @@
         <label for="email">Email *</label>
         <input type="email" id="email" name="email" required>
 
+        <label for="services">Services :</label>
+        <select name="services" id="services">
+        <option value="all">Tous les services</option>
+        <option value="lunch">Déjeuner</option>
+        <option value="dinner">Dîner</option> 
+        </select>
+    
+        <label for="guests">Nombre d'invités :</label>
+        <input type="number" id="guests" name="guests" min="1" value="1">
+    
+        <label for="day">Jour :</label>
+        <input type="date" id="day" name="day">
+    
         <label for="message">Laisser un message pour le restaurant</label>
         <textarea id="message" name="message" placeholder="Laisser un message pour le restaurant"></textarea>
 
@@ -51,49 +64,36 @@
 </section>
 <script src="script.js"></script>
 <script>
-    document.getElementById('confirmation-form').addEventListener('submit', function(event) {
-        event.preventDefault(); // Empêche le rechargement de la page
+    document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('confirmation-form');
+    if (form) {
+        form.addEventListener('submit', function(event) {
+            event.preventDefault(); // Empêche le rechargement de la page
 
-        // Récupération des données du formulaire
-        const firstName = document.getElementById('first-name').value;
-        const lastName = document.getElementById('last-name').value;
-        const phone = document.getElementById('phone').value;
-        const countryCode = document.getElementById('country-code').value;
-        const email = document.getElementById('email').value;
-        const message = document.getElementById('message').value;
-
-        // Création de l'objet à envoyer au serveur
-        const reservationData = {
-            firstName,
-            lastName,
-            phone: `${countryCode} ${phone}`,  // Combine country code and phone number
-            email,
-            message
-        };
-
-        // Envoi de la requête POST au serveur
-        fetch('http://localhost:4011/reservation', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(reservationData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.message) {
-                alert(data.message); // Affiche un message de confirmation
-                window.location.href = '/confirmation.html'; // Redirige vers la page de confirmation
-            } else {
-                alert('Erreur lors de la réservation.');
+            const formData = new FormData(this);
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}: ${value}`);
             }
-        })
-        .catch(error => {
-            console.error('Erreur lors de la requête:', error);
-            alert('Une erreur est survenue.');
-        });
-    });
-</script>
 
+            fetch('/reservation', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                console.log('Réponse du serveur:', data);
+                alert('Réservation enregistrée avec succès.');
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Une erreur est survenue lors de la réservation.');
+            });
+        });
+    } else {
+        console.error('Formulaire non trouvé');
+    }
+});
+
+</script>    
 </body>
 </html>

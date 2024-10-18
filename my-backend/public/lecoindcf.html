@@ -13,7 +13,7 @@
           <ul>
             <li><a href="index.html">Accueil</a></li>
             <li><a href="nosplats.html">Nos Plats</a></li>
-            <li><a href="partager.html">Partager une Recette</a></li>
+            <li><a href="recettespartager.html">Partager une Recette</a></li>
             <li><a href="contact.html">Contact</a></li>
           </ul>
           <div class="nav-search">
@@ -26,10 +26,7 @@
             <div class="login-icon">
               <i class="las la-user-circle"></i>
             </div>
-            <div class="dropdown-menu">
-              <a href="login.html" id="login">Connexion</a>
-              <a href="signup.html" id="signup">Inscription</a>
-            </div>
+            
           </div>
         </nav>
       </header>
@@ -41,9 +38,9 @@
     
       <section class="form-section">
         <h2>Soumettez votre recette</h2>
-        <form id="recipe-form">
+        <form id="recipe-form" enctype="multipart/form-data">
           <label for="recipe-name">Nom de la recette :</label>
-          <input type="text" id="recipe-name" name="recipe-name" required>
+          <input type="text" id="recipe-name" name="title" required>
     
           <label for="ingredients">Ingrédients :</label>
           <textarea id="ingredients" name="ingredients" rows="5" required></textarea>
@@ -57,18 +54,58 @@
           <button type="submit">Partager ma recette</button>
         </form>
       </section>
-    
+
       <section class="recipes">
         <h2>Recettes récemment partagées</h2>
         <div id="recipe-list">
           <!-- Les recettes partagées s'afficheront ici -->
         </div>
       </section>
-    
-      <footer>
-        <p>TUNDE - Du bonheur sous la langue</p>
-      </footer>
-    
       <script src="script.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          const form = document.getElementById('recipe-form');
+          
+          // Vérifier si le formulaire existe
+          if (form) {
+            form.addEventListener('submit', async (event) => {
+              event.preventDefault(); // Empêche le rechargement de la page
+    
+              const formData = new FormData(form);  // Collecte des données du formulaire
+              
+              // Vérification du token avant de soumettre
+              const token = localStorage.getItem('token');
+              if (!token) {
+                alert('Vous devez être connecté pour soumettre une recette.');
+                return;
+              }
+    
+              try {
+                // Envoi de la requête POST à l'API pour publier la recette
+                const response = await fetch('http://localhost:4011/recipes', {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': 'Bearer ' + token  // JWT token
+                  },
+                  body: formData
+                });
+    
+                if (response.ok) {
+                  alert('Recette publiée avec succès!');
+                  window.location.href = 'recettespartager.html'; // Redirection après succès
+                } else {
+                  const errorMsg = await response.text(); // Lire le message d'erreur du serveur
+                  alert('Erreur lors de la publication de la recette : ' + errorMsg);
+                }
+              } catch (error) {
+                console.error('Erreur lors de la soumission :', error);
+                alert('Erreur lors de la soumission du formulaire.');
+              }
+            });
+          } else {
+            console.error("Le formulaire de recette n'a pas été trouvé.");
+          }
+        });
+      </script>
 </body>
 </html>

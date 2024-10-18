@@ -30,7 +30,7 @@
                 <p>Pour réserver, veuillez indiquer vos détails ci-dessous :</p>
     
                 <!-- Ajout de l'ID 'reservation-form' -->
-                <form id="reservation-form" action="/confirmation.html" method="POST">
+                <form id="reservation-form">
                     <label for="services">Services :</label>
                     <select name="services" id="services">
                         <option value="all">Tous les services</option>
@@ -52,13 +52,30 @@
     <footer>
         <p>&copy; 2024 TUNDE. Tous droits réservés.</p>
     </footer>
-
     <script>
         document.getElementById('reservation-form').addEventListener('submit', function(event) {
             event.preventDefault(); // Empêche le rechargement de la page
-            // Ici tu peux ajouter une validation si nécessaire
-            window.location.href = 'confirmation.html'; // Redirige vers la page de confirmation
+    
+            // Récupérer les valeurs des champs
+            const services = document.getElementById('services').value;
+            const guests = document.getElementById('guests').value;
+            const day = document.getElementById('day').value;
+    
+            // Vérification que tous les champs sont remplis
+            if (!services || !guests || !day) {
+                alert('Veuillez remplir tous les champs');
+                return;
+            }
+    
+            // Stocker les données dans le localStorage
+            localStorage.setItem('reservation_services', services);
+            localStorage.setItem('reservation_guests', guests);
+            localStorage.setItem('reservation_day', day);
+    
+            // Rediriger vers la page de confirmation
+            window.location.href = 'confirmation.html';
         });
     </script>
+    
 </body>
 </html>
