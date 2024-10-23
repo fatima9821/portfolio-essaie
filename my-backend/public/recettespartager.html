@@ -76,7 +76,7 @@
 
               // Parcourir les recettes et les ajouter à la page
               recipes.forEach(recipe => {
-                  const recipeItem = document.createElement('div');
+                const recipeItem = document.createElement('div');
                   recipeItem.className = 'recipe-item';
                   const imagePath = recipe.image ? `/uploads/${recipe.image}` : '';
                   console.log('Image path:', imagePath);  // Vérifie le chemin de l'image
@@ -95,5 +95,6 @@
           }
       });
   </script>
+
 </body>
 </html>

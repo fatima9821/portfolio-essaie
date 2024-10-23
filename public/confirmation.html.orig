@@ -11,7 +11,7 @@
 
 <section class="reservation-confirmation">
     <h2>Confirmer la réservation</h2>
-    <form id="confirmation-form" action="/reservation" method="POST">
+    <form id="confirmation-form" action="/submit-reservation" method="POST">
         <!-- Informations personnelles -->
         <label for="firstname">Prénom *</label>
         <input type="text" id="firstname" name="firstname" required>
@@ -47,7 +47,6 @@
         <label for="message">Laisser un message pour le restaurant</label>
         <textarea id="message" name="message" placeholder="Laisser un message pour le restaurant"></textarea>
 
-
         <!-- Politique de confidentialité -->
         <p class="privacy-notice">
             En confirmant ma réservation, j'accepte les <a href="#">termes et conditions</a>.
@@ -65,61 +64,56 @@
 </section>
 <script src="script.js"></script>
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    // Sélectionner le formulaire de confirmation
-    const confirmationForm = document.getElementById('confirmation-form');
+    document.getElementById('confirmation-form').addEventListener('submit', async (event) => {
+        event.preventDefault(); // Empêche le rechargement de la page
 
-    // Gérer la soumission du formulaire
-    confirmationForm.addEventListener('submit', async function (event) {
-      event.preventDefault(); // Empêche le rechargement de la page
+        const firstname = document.getElementById('firstname').value;
+        const lastname = document.getElementById('lastname').value;
+        const email = document.getElementById('email').value;
+        const phone = document.getElementById('phone').value;
+        const services = document.getElementById('services').value;
+        const guests = document.getElementById('guests').value;
+        const day = document.getElementById('day').value;
+        const message = document.getElementById('message').value;
 
-      // Récupérer les valeurs du formulaire
-      const firstname = document.getElementById('firstname').value;
-      const lastname = document.getElementById('lastname').value;
-      const phone = document.getElementById('phone').value;
-      const email = document.getElementById('email').value;
-      const services = document.getElementById('services').value;
-      const guests = document.getElementById('guests').value;
-      const date = document.getElementById('day').value;
-      const message = document.getElementById('message').value;
-
-      // Envoyer les données au serveur via une requête POST
-      try {
-        const response = await fetch('http://localhost:4011/reservation', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            firstname,
-            lastname,
-            phone,
-            email,
-            services,
-            guests,
-            date,
-            message,
-            time: '19:30' // Heure fixe pour chaque réservation
-          })
-        });
-
-        // Vérifier la réponse du serveur
-        if (response.ok) {
-          const result = await response.text();
-          alert('Réservation réussie : ' + result);
-
-          // Rediriger vers une page de succès ou d'accueil après soumission réussie
-          window.location.href = 'merci.html'; // Remplacer par la page de destination
-        } else {
-          throw new Error('Erreur lors de la réservation');
+        // Vérifier que tous les champs sont remplis
+        if (!firstname || !lastname || !email || !phone || !services || !guests || !day) {
+            alert('Tous les champs doivent être remplis.');
+            return;
         }
-      } catch (error) {
-        console.error('Erreur lors de la soumission :', error);
-        alert('Erreur lors de la soumission du formulaire : ' + error.message);
-      }
+
+        try {
+            const response = await fetch('http://localhost:4011/reservation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    firstname,
+                    lastname,
+                    email,
+                    phone,
+                    services,
+                    guests,
+                    date: day,  // La date
+                    time: '19:00',  // Heure par défaut ou modifiable
+                    message
+                })
+            });
+
+            const result = await response.text();
+            if (response.ok) {
+                alert('Votre réservation a été envoyée avec succès !');
+                window.location.href = 'confirmation_success.html';  // Rediriger vers une page de succès
+            } else {
+                alert('Erreur : ' + result);
+            }
+        } catch (error) {
+            console.error('Erreur lors de l\'envoi de la réservation', error);
+            alert('Erreur lors de l\'envoi de la réservation');
+        }
     });
-  });
 </script>
-    
+
 </body>
 </html>

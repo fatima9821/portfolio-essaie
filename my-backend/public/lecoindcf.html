@@ -36,7 +36,7 @@
         <p>Découvrez les créations des autres utilisateurs et partagez vos plats préférés !</p>
       </section>
     
-      <section class="form-section">
+      <section id="submit-section" class="form-section">
         <h2>Soumettez votre recette</h2>
         <form id="recipe-form" enctype="multipart/form-data">
           <label for="recipe-name">Nom de la recette :</label>
@@ -65,21 +65,21 @@
       <script>
         document.addEventListener('DOMContentLoaded', function () {
           const form = document.getElementById('recipe-form');
-          
+
           // Vérifier si le formulaire existe
           if (form) {
             form.addEventListener('submit', async (event) => {
               event.preventDefault(); // Empêche le rechargement de la page
-    
+
               const formData = new FormData(form);  // Collecte des données du formulaire
-              
+
               // Vérification du token avant de soumettre
               const token = localStorage.getItem('token');
               if (!token) {
                 alert('Vous devez être connecté pour soumettre une recette.');
                 return;
               }
-    
+
               try {
                 // Envoi de la requête POST à l'API pour publier la recette
                 const response = await fetch('http://localhost:4011/recipes', {
@@ -89,7 +89,6 @@
                   },
                   body: formData
                 });
-    
                 if (response.ok) {
                   alert('Recette publiée avec succès!');
                   window.location.href = 'recettespartager.html'; // Redirection après succès

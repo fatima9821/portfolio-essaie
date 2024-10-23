@@ -31,40 +31,45 @@
         <p>TUNDE - Du bonheur sous la langue</p>
     </footer>
     <script>
-        document.getElementById('login-form').addEventListener('submit', async function(event) {
-            event.preventDefault(); // Empêche le rechargement de la page
+        document.addEventListener('DOMContentLoaded', function () {
+            const loginForm = document.getElementById('login-form');
+            
+            if (loginForm) {
+                loginForm.addEventListener('submit', async (event) => {
+                    event.preventDefault(); // Empêche le rechargement de la page
+                    
+                    const email = document.getElementById('email').value;
+                    const password = document.getElementById('password').value;
+                    
+                    try {
+                        // Envoi de la requête POST à l'API pour authentifier l'utilisateur
+                        const response = await fetch('http://localhost:4011/login', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ email, password })
+                        });
 
-            // Récupérer les valeurs du formulaire
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
-            console.log('Envoi des données de connexion...');
-
-            // Envoyer une requête POST pour la connexion
-            try {
-                const response = await fetch('http://localhost:4011/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ email, password })
-                });
-
-                const result = await response.json();
-
-                console.log('Réponse du serveur :', result);
-
-                if (response.ok) {
-                    localStorage.setItem('token', result.token);
-                    window.location.href = 'published_recipes.html';
+                        if (response.ok) {
+                            const data = await response.json();
+                            const token = data.token; // Supposons que le token est renvoyé dans la réponse
+                            localStorage.setItem('token', token); // Stocke le token dans le localStorage
+                            alert('Connexion réussie!');
+                            window.location.href = 'recettespartager.html'; // Redirection après connexion
+                            } else {
+                                const errorMsg = await response.text();
+                                alert('Erreur lors de la connexion : ' + errorMsg);
+                            }
+                        } catch (error) {
+                            console.error('Erreur lors de la connexion :', error);
+                            alert('Erreur lors de la connexion.');
+                        }
+                    });
                 } else {
-                    alert('Erreur de connexion : ' + result.message);
+                    console.error("Le formulaire de connexion n'a pas été trouvé.");
                 }
-            } catch (error) {
-                console.error('Erreur lors de la requête de connexion', error);
-                alert('Erreur lors de la connexion');
-            }
-        });
-    </script>
+                });
+</script>
 </body>
 </html>

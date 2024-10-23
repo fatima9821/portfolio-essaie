@@ -8,6 +8,7 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const path = require('path');
 const cors = require('cors');
 const app = express();
@@ -28,6 +29,8 @@ const upload = multer({ storage: storage });
 // Middleware pour analyser les corps de requêtes JSON
 app.use(express.json());
 app.use(cors());
+app.use(express.json());
+app.use(cookieParser());
 app.use(express.static('public'));  // ou 'frontend', selon le nom du dossier
 app.use(express.urlencoded({ extended: true })); // Pour traiter les données des formulaires
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -84,23 +87,26 @@ connection.connect((err) => {
   function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-  
-    if (!token) return res.sendStatus(401); // Pas de token fourni
-  
+
+    if (!token) {
+      return res.status(401).json({ message: 'Token manquant' });
+  }
+
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
       if (err) {
         console.error('Erreur de vérification du token:', err);
         return res.sendStatus(403); // Token invalide
       }
       req.user = user;
+      console.log("Utilisateur authentifié : ", user);
       next();
     });
   }
 
   
-  app.use((req, res, next) => {
-    res.setHeader("Content-Security-Policy", "default-src 'self'; img-src 'self' data:; style-src 'self' https://www.gstatic.com; script-src 'self' https://cdn.jsdelivr.net");
-    next();
+app.use((req, res, next) => {
+  res.setHeader("Content-Security-Policy", "default-src 'self'; img-src 'self' data:; style-src 'self' https://www.gstatic.com; script-src 'self' https://cdn.jsdelivr.net");
+  next();
 });
   
   // Route principale (page d'accueil)
@@ -108,11 +114,12 @@ app.get('/', (req, res) => {
   res.send('Bienvenue sur le backend de TUNDE, votre site de cuisine!');
 });
 
-app.use(cors({
-  origin: 'http://localhost:4011', // ou l'URL de ton front-end
+const cors = {
+  origin: 'http://localhost:4011', // URL de ton front-end
   methods: 'GET,POST,PUT,DELETE',
+  allowedHeaders: ['Authorization', 'Content-Type'],
   credentials: true
-}));
+};
 
 // Fonction pour envoyer un email de confirmation
 function sendConfirmationEmail(name, email, date, time) {
@@ -147,26 +154,28 @@ function isAdmin(req, res, next) {
   }
   next();
 }
-
 // Route pour gérer les réservations
 app.post('/reservation', (req, res) => {
   console.log(req.body); 
-  const { firstname, lastname, email, date, phone, time, guests, services, message } = req.body;
+  const { firstname, lastname, email, day, phone, guests, services, message } = req.body;
 
-  if (!firstname || !lastname || !email || !date || !phone || !time || !guests || !services || !message) {
+  const time = '19:30'; // Fixe l'heure directement ici
+
+
+  if (!firstname || !lastname || !email || !day || !phone || !guests || !services || !message) {
     return res.status(400).send('Tous les champs sont requis');
   }
 
   // Insertion des données de réservation dans MySQL
   const sql = "INSERT INTO reservations (firstname, lastname, email, date, phone, time, guests, services, message) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-  connection.query(sql, [firstname, lastname, email, date, phone, time, guests, services, message], (err, result) => {
+  connection.query(sql, [firstname, lastname, email, day, phone, time, guests, services, message], (err, result) => {
     if (err) {
       console.error('Erreur lors de l\'insertion dans la base de données', err);
       return res.status(500).send('Erreur du serveur');
     }
 
     // Envoi de l'email de confirmation
-    sendConfirmationEmail(firstname, email, date, time);
+    sendConfirmationEmail(firstname, email, day, time);
 
     res.send('Réservation enregistrée avec succès. Un email de confirmation vous a été envoyé.');
   });
@@ -229,39 +238,56 @@ app.post('/login', (req, res) => {
       return res.status(500).json({ message: 'Erreur du serveur' });
     }
 
+    // Si aucun utilisateur n'a été trouvé
     if (results.length === 0) {
       return res.status(400).json({ message: 'Utilisateur non trouvé' });
     }
 
     const user = results[0];
+
+    // Comparer le mot de passe soumis avec celui dans la base de données
     bcrypt.compare(password, user.password, (err, match) => {
       if (err) {
         console.error('Erreur lors de la comparaison des mots de passe :', err);
         return res.status(500).json({ message: 'Erreur du serveur' });
       }
 
+      // Si les mots de passe ne correspondent pas
       if (!match) {
         return res.status(400).json({ message: 'Mot de passe incorrect' });
       }
 
-      // Génération du token JWT
+      // Génération du token JWT une fois que l'utilisateur est validé
       const token = jwt.sign(
         { id: user.id, email: user.email, role: user.role },
         process.env.JWT_SECRET,  // Utilise la clé secrète définie dans le fichier .env
         { expiresIn: '1h' }  // Le token expire dans 1 heure
       );
 
-      // Envoi du token dans la réponse
+      // Ajouter le token dans un cookie sécurisé
+      res.cookie('token', token, {
+        httpOnly: true, // Cookie non accessible via JavaScript (meilleure sécurité)
+        secure: false, // Met à true si tu es en HTTPS
+        maxAge: 3600000 // Expire après 1 heure
+      });
+
+      // Envoi du token dans la réponse (optionnel si tu utilises les cookies)
       return res.status(200).json({
         message: 'Connexion réussie',
-        token: token
+        token: token  // Optionnel, si tu veux envoyer aussi le token en JSON
       });
     });
   });
 });
 
+
 // Route pour publier une recette avec une image
 app.post('/recipes', authenticateToken, upload.single('image'), (req, res) => {
+  console.log('Requête reçue pour publier une recette');
+  console.log('Utilisateur:', req.user);
+  console.log('Corps de la requête:', req.body);
+  console.log('Fichier reçu:', req.file);
+  
   const { title, ingredients, instructions } = req.body;
   const userId = req.user.id; // Récupéré à partir du token
   const image = req.file ? req.file.filename : null; // Le nom de l'image téléchargée
