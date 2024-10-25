@@ -72,7 +72,7 @@ connection.connect((err) => {
       from: process.env.EMAIL_USER,
       to: email,
       subject: 'Vérification de votre email',
-      text: `Bonjour ${username},\n\nVeuillez vérifier votre email en cliquant sur le lien suivant :\n\nhttp://localhost:4011/verify-email?token=${token}\n\nMerci !`
+      text: `Bonjour ${firstname},\n\nVotre réservation pour le ${day} à ${time} a été confirmée. Nous avons hâte de vous accueillir !`
     };
   
     transporter.sendMail(mailOptions, (error, info) => {
@@ -83,6 +83,14 @@ connection.connect((err) => {
       }
     });
   }
+
+  // Middleware pour vérifier si l'utilisateur est un admin
+function isAdmin(req, res, next) {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).send('Accès refusé : administrateurs uniquement');
+  }
+  next();
+}
 
   function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
@@ -103,8 +111,7 @@ connection.connect((err) => {
     });
   }
 
-  
-app.use((req, res, next) => {
+  app.use((req, res, next) => {
   res.setHeader("Content-Security-Policy", "default-src 'self'; img-src 'self' data:; style-src 'self' https://www.gstatic.com; script-src 'self' https://cdn.jsdelivr.net");
   next();
 });
@@ -114,14 +121,7 @@ app.get('/', (req, res) => {
   res.send('Bienvenue sur le backend de TUNDE, votre site de cuisine!');
 });
 
-const cors = {
-  origin: 'http://localhost:4011', // URL de ton front-end
-  methods: 'GET,POST,PUT,DELETE',
-  allowedHeaders: ['Authorization', 'Content-Type'],
-  credentials: true
-};
-
-// Fonction pour envoyer un email de confirmation
+  // Fonction pour envoyer un email de confirmation
 function sendConfirmationEmail(name, email, date, time) {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -147,35 +147,27 @@ function sendConfirmationEmail(name, email, date, time) {
   });
 }
 
-// Middleware pour vérifier si l'utilisateur est un admin
-function isAdmin(req, res, next) {
-  if (!req.user || req.user.role !== 'admin') {
-    return res.status(403).send('Accès refusé : administrateurs uniquement');
-  }
-  next();
-}
+
 // Route pour gérer les réservations
 app.post('/reservation', (req, res) => {
   console.log(req.body); 
-  const { firstname, lastname, email, day, phone, guests, services, message } = req.body;
-
-  const time = '19:30'; // Fixe l'heure directement ici
+  const { firstname, lastname, email, date, time, phone, guests, services, message } = req.body;
 
 
-  if (!firstname || !lastname || !email || !day || !phone || !guests || !services || !message) {
+  if (!firstname || !lastname || !email || !date || !phone || !time || !guests || !services || !message) {
     return res.status(400).send('Tous les champs sont requis');
   }
 
   // Insertion des données de réservation dans MySQL
   const sql = "INSERT INTO reservations (firstname, lastname, email, date, phone, time, guests, services, message) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-  connection.query(sql, [firstname, lastname, email, day, phone, time, guests, services, message], (err, result) => {
+  connection.query(sql, [firstname, lastname, email, date, phone, time, guests, services, message], (err, result) => {
     if (err) {
       console.error('Erreur lors de l\'insertion dans la base de données', err);
       return res.status(500).send('Erreur du serveur');
     }
 
     // Envoi de l'email de confirmation
-    sendConfirmationEmail(firstname, email, day, time);
+    sendConfirmationEmail(firstname, email, date, time);
 
     res.send('Réservation enregistrée avec succès. Un email de confirmation vous a été envoyé.');
   });
@@ -392,31 +384,7 @@ function authenticateToken(req, res, next) {
   });
 }
 
-// Protéger la route de publication des recettes
-app.post('/recipes', authenticateToken, (req, res) => {
-  const { title, ingredients, instructions } = req.body;
-  const userId = req.user.id; // Récupéré à partir du token
-  const image = req.file ? req.file.filename : null; // Le nom de l'image téléchargée
 
-  if (!title || !ingredients || !instructions || !image) {
-    return res.status(400).send('Tous les champs sont requis, y compris l\'image.');
-  }
-
-  console.log('Image path:', image); // Vérifie le chemin de l'image
-
-  // Insertion de la recette dans la base de données
-  const sql = "INSERT INTO recipes (user_id, title, ingredients, instructions) VALUES (?, ?, ?, ?)";
-  connection.query(sql, [userId, title, ingredients, instructions], (err, result) => {
-    if (err) {
-      return res.status(500).send('Erreur lors de la publication de la recette');
-    }
-
-    res.status(200).json({
-      message: 'Recette publiée avec succès',
-      recipeId: result.insertId
-    });
-  });
-});
 
 // Route pour récupérer des recettes filtrées par titre ou ingrédient
 app.get('/recipes/search', (req, res) => {

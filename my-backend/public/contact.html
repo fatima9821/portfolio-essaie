@@ -73,6 +73,8 @@
                 if (response.ok) {
                     alert('Votre message a été envoyé avec succès !');
                     contactForm.reset();  // Réinitialiser le formulaire
+
+                    window.location.href = 'merci.html'; 
                 } else {
                     alert('Erreur : ' + result);
                 }
