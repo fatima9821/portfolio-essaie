@@ -15,7 +15,7 @@
         <!-- Contenu principal à gauche -->
         <section class="main-content">
             <h2>Réserver en ligne</h2>
-            <p>Chères Pas Parisiennes, chers Pas Parisiens,</p>
+            <p>Chères Tunde'lovers,</p>
             <p>Nous tenons à vous remercier d’être si nombreux à fréquenter nos différents bistrots.</p>
             <p>Nous sommes heureux de vous servir afin que vous puissiez trinquer, rire, déguster, échanger, déjeuner, diner... au sein des BISTROTS PAS PARISIENS.</p>
             <p>On y mange bien, on s’y sent bien. Bienvenue dans la famille Pas Parisiens !</p>
@@ -26,23 +26,19 @@
             <h3>Réservez en ligne</h3>
             <div class="reservation-box">
                 <p>Book online at <strong>Saperlipopette!</strong></p>
-                <p>Chers Pas Parisiens, Nous avons hâte de vous recevoir...</p>
                 <p>Pour réserver, veuillez indiquer vos détails ci-dessous :</p>
     
                 <!-- Ajout de l'ID 'reservation-form' -->
                 <form id="reservation-form">
-                    <label for="services">Services :</label>
+                    <label for="services">table :</label>
                     <select name="services" id="services">
                         <option value="all">Tous les services</option>
-                        <option value="lunch">Déjeuner</option>
-                        <option value="dinner">Dîner</option> 
+                        <option value="lunch">Fenetre</option>
+                        <option value="dinner">peut-importe</option> 
                     </select>
     
                     <label for="guests">Nombre d'invités :</label>
                     <input type="number" id="guests" name="guests" min="1" value="1">
-    
-                    <label for="day">Jour :</label>
-                    <input type="date" id="day" name="day">
     
                     <button type="submit" onclick="window.location.href='confirmation.html'">Réserver maintenant</button>
                 </form>

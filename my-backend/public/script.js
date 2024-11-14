@@ -1,48 +1,30 @@
-// script.js
-document.getElementById('recipe-form').addEventListener('submit', function(event) {
-    event.preventDefault();
-  
-    const recipeName = document.getElementById('recipe-name').value;
-    const ingredients = document.getElementById('ingredients').value;
-    const instructions = document.getElementById('instructions').value;
-    const image = document.getElementById('image').files[0];
-  
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      addRecipeToPage(recipeName, ingredients, instructions, e.target.result);
-    };
-  
-    if (image) {
-      reader.readAsDataURL(image);
-    } else {
-      addRecipeToPage(recipeName, ingredients, instructions, '');
+document.addEventListener('DOMContentLoaded', () => {
+    const darkModeButton = document.getElementById('darkModeToggle');
+    
+    if (darkModeButton) {
+        const icon = darkModeButton.querySelector('i');
+        
+        // Vérifier le thème actuel
+        const currentTheme = localStorage.getItem('theme');
+        if (currentTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            icon.className = 'las la-sun';
+            darkModeButton.innerHTML = '<i class="las la-sun"></i> Mode Clair';
+        }
+
+        // Gérer le clic sur le bouton
+        darkModeButton.addEventListener('click', () => {
+            const theme = document.documentElement.getAttribute('data-theme');
+            
+            if (theme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+                darkModeButton.innerHTML = '<i class="las la-moon"></i> Mode Sombre';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                darkModeButton.innerHTML = '<i class="las la-sun"></i> Mode Clair';
+            }
+        });
     }
-  
-    // Réinitialiser le formulaire
-    document.getElementById('recipe-form').reset();
-  });
-  
-  function addRecipeToPage(name, ingredients, instructions, imageSrc) {
-    const recipeList = document.getElementById('recipe-list');
-  
-    const recipeItem = document.createElement('div');
-    recipeItem.classList.add('recipe-item');
-  
-    recipeItem.innerHTML = `
-      <h3>${name}</h3>
-      <p><strong>Ingrédients :</strong></p>
-      <p>${ingredients}</p>
-      <p><strong>Instructions :</strong></p>
-      <p>${instructions}</p>
-      ${imageSrc ? `<img src="${imageSrc}" alt="${name}" width="200">` : ''}
-    `;
-  
-    recipeList.appendChild(recipeItem);
-  }
-  
-  document.getElementById('hamburger').addEventListener('click', function() {
-    console.log("Le bouton hamburger a été cliqué !");
-  });
-  
- 
-/*qsn*/
+});

@@ -93,22 +93,23 @@ function isAdmin(req, res, next) {
 }
 
   function authenticateToken(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-
+    const token = req.headers['authorization'];
+    
     if (!token) {
-      return res.status(401).json({ message: 'Token manquant' });
-  }
+        return res.status(401).json({ message: 'Token manquant' });
+    }
 
-    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-      if (err) {
+    try {
+        const user = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = user;
+        next();
+    } catch (err) {
         console.error('Erreur de vérification du token:', err);
-        return res.sendStatus(403); // Token invalide
-      }
-      req.user = user;
-      console.log("Utilisateur authentifié : ", user);
-      next();
-    });
+        if (err.name === 'TokenExpiredError') {
+            return res.status(403).json({ message: 'Token expiré' });
+        }
+        return res.status(403).json({ message: 'Token invalide' });
+    }
   }
 
   app.use((req, res, next) => {
@@ -147,6 +148,13 @@ function sendConfirmationEmail(name, email, date, time) {
   });
 }
 
+// Middleware pour vérifier si l'utilisateur est un admin
+function isAdmin(req, res, next) {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).send('Accès refusé : administrateurs uniquement');
+  }
+  next();
+}
 
 // Route pour gérer les réservations
 app.post('/reservation', (req, res) => {
@@ -219,110 +227,133 @@ app.post('/register', (req, res) => {
 
 
 // Route pour la connexion avec génération du token JWT
-app.post('/login', (req, res) => {
-  const { email, password } = req.body;
+app.post('/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        
+        // Vérification de l'utilisateur dans la base de données
+        const sql = "SELECT * FROM users WHERE email = ?";
+        connection.query(sql, [email], (err, results) => {
+            if (err) {
+                console.error('Erreur lors de la requête SQL :', err);
+                return res.status(500).json({ message: 'Erreur du serveur' });
+            }
 
-  // Vérification de l'utilisateur dans la base de données
-  const sql = "SELECT * FROM users WHERE email = ?";
-  connection.query(sql, [email], (err, results) => {
-    if (err) {
-      console.error('Erreur lors de la requête SQL :', err);
-      return res.status(500).json({ message: 'Erreur du serveur' });
+            // Si aucun utilisateur n'a été trouvé
+            if (results.length === 0) {
+                return res.status(400).json({ message: 'Utilisateur non trouvé' });
+            }
+
+            const user = results[0];
+
+            // Comparer le mot de passe soumis avec celui dans la base de données
+            bcrypt.compare(password, user.password, (err, match) => {
+                if (err) {
+                    console.error('Erreur lors de la comparaison des mots de passe :', err);
+                    return res.status(500).json({ message: 'Erreur du serveur' });
+                }
+
+                // Si les mots de passe ne correspondent pas
+                if (!match) {
+                    return res.status(400).json({ message: 'Mot de passe incorrect' });
+                }
+
+                // Génération du token JWT une fois que l'utilisateur est validé
+                const token = jwt.sign(
+                    { id: user.id, email: user.email, role: user.role },
+                    process.env.JWT_SECRET,  // Utilise la clé secrète définie dans le fichier .env
+                    { expiresIn: '1h' }  // Le token expire dans 1 heure
+                );
+
+                // Ajouter le token dans un cookie sécurisé
+                res.cookie('token', token, {
+                    httpOnly: true, // Cookie non accessible via JavaScript (meilleure sécurité)
+                    secure: false, // Met à true si tu es en HTTPS
+                    maxAge: 3600000 // Expire après 1 heure
+                });
+
+                // Envoi du token sans 'Bearer'
+                res.json({ 
+                    message: 'Connexion réussie',
+                    token: token 
+                });
+            });
+        });
+    } catch (error) {
+        console.error('Erreur de connexion:', error);
+        res.status(500).json({ message: 'Erreur lors de la connexion' });
     }
-
-    // Si aucun utilisateur n'a été trouvé
-    if (results.length === 0) {
-      return res.status(400).json({ message: 'Utilisateur non trouvé' });
-    }
-
-    const user = results[0];
-
-    // Comparer le mot de passe soumis avec celui dans la base de données
-    bcrypt.compare(password, user.password, (err, match) => {
-      if (err) {
-        console.error('Erreur lors de la comparaison des mots de passe :', err);
-        return res.status(500).json({ message: 'Erreur du serveur' });
-      }
-
-      // Si les mots de passe ne correspondent pas
-      if (!match) {
-        return res.status(400).json({ message: 'Mot de passe incorrect' });
-      }
-
-      // Génération du token JWT une fois que l'utilisateur est validé
-      const token = jwt.sign(
-        { id: user.id, email: user.email, role: user.role },
-        process.env.JWT_SECRET,  // Utilise la clé secrète définie dans le fichier .env
-        { expiresIn: '1h' }  // Le token expire dans 1 heure
-      );
-
-      // Ajouter le token dans un cookie sécurisé
-      res.cookie('token', token, {
-        httpOnly: true, // Cookie non accessible via JavaScript (meilleure sécurité)
-        secure: false, // Met à true si tu es en HTTPS
-        maxAge: 3600000 // Expire après 1 heure
-      });
-
-      // Envoi du token dans la réponse (optionnel si tu utilises les cookies)
-      return res.status(200).json({
-        message: 'Connexion réussie',
-        token: token  // Optionnel, si tu veux envoyer aussi le token en JSON
-      });
-    });
-  });
 });
 
 
 // Route pour publier une recette avec une image
 app.post('/recipes', authenticateToken, upload.single('image'), (req, res) => {
-  console.log('Requête reçue pour publier une recette');
-  console.log('Utilisateur:', req.user);
-  console.log('Corps de la requête:', req.body);
-  console.log('Fichier reçu:', req.file);
-  
-  const { title, ingredients, instructions } = req.body;
-  const userId = req.user.id; // Récupéré à partir du token
-  const image = req.file ? req.file.filename : null; // Le nom de l'image téléchargée
+    try {
+        console.log('Données reçues:', req.body); // Debug
+        console.log('Fichier reçu:', req.file); // Debug
+        console.log('Utilisateur:', req.user); // Debug
 
-  // Vérifie que tous les champs sont présents
-  if (!title || !ingredients || !instructions || !image) {
-    return res.status(400).send('Tous les champs sont requis, y compris l\'image.');
-  }
+        const { title, ingredients, instructions } = req.body;
+        const userId = req.user.id;
+        const imagePath = req.file ? req.file.filename : null;
 
-  console.log('Image path:', image); // Vérifie le chemin de l'image
+        const sql = `
+            INSERT INTO recipes (title, ingredients, instructions, image, user_id) 
+            VALUES (?, ?, ?, ?, ?)
+        `;
 
-  // Insertion de la recette dans la base de données
-  const sql = "INSERT INTO recipes (user_id, title, ingredients, instructions, image) VALUES (?, ?, ?, ?, ?)";
-  connection.query(sql, [userId, title, ingredients, instructions, image], (err, result) => {
-    if (err) {
-      console.error('Erreur lors de la publication de la recette :', err);
-      return res.status(500).send('Erreur lors de la publication de la recette');
+        connection.query(sql, [title, ingredients, instructions, imagePath, userId], 
+            (err, result) => {
+                if (err) {
+                    console.error('Erreur SQL:', err);
+                    return res.status(500).json({ message: 'Erreur lors de l\'insertion' });
+                }
+                
+                console.log('Recette insérée:', result); // Debug
+                res.status(201).json({ 
+                    message: 'Recette créée avec succès',
+                    recipeId: result.insertId 
+                });
+            }
+        );
+
+    } catch (error) {
+        console.error('Erreur:', error);
+        res.status(500).json({ message: 'Erreur serveur' });
     }
-
-    // Retourner une réponse claire après l'insertion
-    res.status(200).json({
-      message: 'Recette publiée avec succès',
-      recipeId: result.insertId  // Renvoie l'ID de la recette insérée si besoin
-    });
-  });
 });
 
 
 // Route pour récupérer toutes les recettes
-app.get('/recipes', (req, res) => {
-  const sql = `
-    SELECT r.id, r.title, r.ingredients, r.instructions, u.username, r.image 
-    FROM recipes r 
-    JOIN users u ON r.user_id = u.id
-  `;
-  connection.query(sql, (err, results) => {
-    if (err) {
-      console.error('Erreur lors de la récupération des recettes :', err);
-      return res.status(500).send('Erreur lors de la récupération des recettes');
+app.get('/recipes', async (req, res) => {
+    try {
+        const query = `
+            SELECT r.*, u.username 
+            FROM recipes r 
+            LEFT JOIN users u ON r.user_id = u.id 
+            ORDER BY r.created_at DESC
+        `;
+        
+        connection.query(query, (err, results) => {
+            if (err) {
+                console.error('Erreur lors de la récupération des recettes:', err);
+                return res.status(500).json({ 
+                    message: 'Erreur lors de la récupération des recettes',
+                    error: err.message 
+                });
+            }
+            
+            console.log('Recettes trouvées:', results.length); // Debug
+            res.json(results);
+        });
+        
+    } catch (error) {
+        console.error('Erreur serveur:', error);
+        res.status(500).json({ 
+            message: 'Erreur serveur',
+            error: error.message 
+        });
     }
-    console.log('Recipes:', results); // Vérifie les résultats
-    res.json(results);
-  });
 });
 
 // Route pour mettre à jour une recette
@@ -387,24 +418,40 @@ function authenticateToken(req, res, next) {
 
 
 // Route pour récupérer des recettes filtrées par titre ou ingrédient
-app.get('/recipes/search', (req, res) => {
-  const { title, ingredient } = req.query;
+app.post('/recipes/search', (req, res) => {
+    try {
+        const { query } = req.body;
+        console.log('Recherche de:', query);
 
-  let sql = "SELECT r.id, r.title, r.ingredients, r.instructions, u.username FROM recipes r JOIN users u ON r.user_id = u.id WHERE 1=1";
-  
-  if (title) {
-    sql += ` AND r.title LIKE '%${title}%'`;
-  }
-  if (ingredient) {
-    sql += ` AND r.ingredients LIKE '%${ingredient}%'`;
-  }
+        if (!query) {
+            return res.status(400).json({ message: 'Terme de recherche requis' });
+        }
 
-  connection.query(sql, (err, results) => {
-    if (err) {
-      return res.status(500).send('Erreur lors de la récupération des recettes');
+        const searchTerm = `%${query}%`;
+        const sqlQuery = `
+            SELECT r.*, u.username 
+            FROM recipes r 
+            LEFT JOIN users u ON r.user_id = u.id 
+            WHERE r.title LIKE ? 
+            OR r.ingredients LIKE ? 
+            OR r.instructions LIKE ?
+            ORDER BY r.created_at DESC
+        `;
+
+        connection.query(sqlQuery, [searchTerm, searchTerm, searchTerm], (err, results) => {
+            if (err) {
+                console.error('Erreur SQL:', err);
+                return res.status(500).json({ message: 'Erreur lors de la recherche' });
+            }
+            
+            console.log('Résultats trouvés:', results.length);
+            res.json(results);
+        });
+
+    } catch (error) {
+        console.error('Erreur serveur:', error);
+        res.status(500).json({ message: 'Erreur serveur' });
     }
-    res.json(results);
-  });
 });
 
 // Route pour ajouter un commentaire sur une recette
@@ -496,3 +543,14 @@ app.post('/contact', (req, res) => {
   app.listen(port, () => {
     console.log('Serveur en écoute sur le port 4011');
   });
+
+  // Configuration pour servir les fichiers statiques
+  app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+  // Assurez-vous que le dossier uploads existe
+  const fs = require('fs');
+  const uploadsDir = path.join(__dirname, 'uploads');
+
+  if (!fs.existsSync(uploadsDir)){
+    fs.mkdirSync(uploadsDir);
+  }

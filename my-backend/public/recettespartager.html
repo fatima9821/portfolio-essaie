@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recettes Publiées</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/line-awesome/1.3.0/line-awesome/css/line-awesome.min.css">
+    <link rel="stylesheet" href="https://maxst.icons8.com/vue-static/landings/line-awesome/line-awesome/1.3.0/css/line-awesome.min.css">
 </head>
 <body>
     <header>
@@ -19,7 +19,7 @@
             <div class="nav-search">
                 <div class="nav-search__el">
                     <i class="las la-search"></i>
-                    <input type="text" placeholder="Recherche" class="search-ip"/>
+                    <input type="text" placeholder="Recherche par titre ou ingrédient" class="search-ip" id="search-input"/>
                 </div>
             </div>
             <div class="login-container">
@@ -51,50 +51,351 @@
     </footer>
     <script src="script.js"></script>
     <script>
-      document.addEventListener('DOMContentLoaded', async () => {
+      document.addEventListener('DOMContentLoaded', async function() {
           try {
-              const token = localStorage.getItem('token');  // Récupère le token JWT depuis le localStorage
+              const response = await fetch('http://localhost:4011/recipes');
+              if (!response.ok) throw new Error('Erreur lors de la récupération des recettes');
+              
+              const recipes = await response.json();
+              const recipeList = document.getElementById('recipe-list');
+              recipeList.className = 'recipe-container';
+              recipeList.innerHTML = '';
 
-              if (!token) {
-                  alert('Vous devez être connecté pour voir les recettes.');
-                  return;
-              }
+              recipes.forEach(recipe => {
+                  const date = new Date(recipe.created_at).toLocaleDateString('fr-FR');
 
-              const response = await fetch('http://localhost:4011/recipes', {
+                  const recipeCard = document.createElement('div');
+                  recipeCard.className = 'recipe-item';
+                  recipeCard.innerHTML = `
+                      <div class="recipe-header">
+                          <div class="user-info">
+                              <span class="username">${recipe.username || 'Utilisateur'}</span>
+                              <div class="post-time">${date}</div>
+                          </div>
+                      </div>
+                      
+                      <div class="recipe-content">
+                          <h3 class="recipe-title">${recipe.title}</h3>
+                          
+                          <div class="recipe-details">
+                              <div class="recipe-ingredients">
+                                  <h4>Ingrédients</h4>
+                                  <p>${recipe.ingredients.replace(/\n/g, '<br>')}</p>
+                              </div>
+                              
+                              <div class="recipe-instructions">
+                                  <h4>Instructions</h4>
+                                  <p>${recipe.instructions.replace(/\n/g, '<br>')}</p>
+                              </div>
+                          </div>
+                      </div>
+                      
+                      ${recipe.image ? `
+                          <div class="recipe-image">
+                              <img src="/uploads/${recipe.image}" alt="${recipe.title}">
+                          </div>
+                      ` : ''}
+                      
+                      <div class="recipe-actions">
+                          <button class="action-button" title="J'aime">
+                              <i class="las la-heart"></i>
+                          </button>
+                          <button class="action-button comment-btn" data-recipe-id="${recipe.id}" title="Commenter">
+                              <i class="las la-comment"></i>
+                          </button>
+                          <button class="action-button" title="Partager">
+                              <i class="las la-share"></i>
+                          </button>
+                          <button class="action-button edit-btn" data-recipe-id="${recipe.id}" title="Modifier">
+                              <i class="las la-edit"></i>
+                          </button>
+                          <button class="action-button delete-btn" data-recipe-id="${recipe.id}" title="Supprimer">
+                              <i class="las la-trash"></i>
+                          </button>
+                      </div>
+
+                      <div class="comments-section" id="comments-${recipe.id}" style="display: none;">
+                          <div class="comments-list"></div>
+                          <div class="comment-form">
+                              <textarea class="comment-input" placeholder="Ajouter un commentaire..."></textarea>
+                              <button class="submit-comment" data-recipe-id="${recipe.id}">Publier</button>
+                          </div>
+                      </div>
+                  `;
+                  
+                  recipeList.appendChild(recipeCard);
+
+                  // Gestionnaires d'événements
+                  const commentBtn = recipeCard.querySelector('.comment-btn');
+                  const editBtn = recipeCard.querySelector('.edit-btn');
+                  const deleteBtn = recipeCard.querySelector('.delete-btn');
+                  const commentsSection = recipeCard.querySelector(`#comments-${recipe.id}`);
+                  const submitCommentBtn = recipeCard.querySelector('.submit-comment');
+
+                  // Gestionnaire pour les commentaires
+                  commentBtn.addEventListener('click', () => {
+                      if (commentsSection.style.display === 'none') {
+                          commentsSection.style.display = 'block';
+                          loadComments(recipe.id);
+                      } else {
+                          commentsSection.style.display = 'none';
+                      }
+                  });
+
+                  // Gestionnaire pour soumettre un commentaire
+                  submitCommentBtn.addEventListener('click', async () => {
+                      const commentInput = recipeCard.querySelector('.comment-input');
+                      const comment = commentInput.value.trim();
+                      
+                      if (comment) {
+                          try {
+                              const response = await fetch(`http://localhost:4011/recipes/${recipe.id}/comments`, {
+                                  method: 'POST',
+                                  headers: {
+                                      'Content-Type': 'application/json',
+                                      'Authorization': localStorage.getItem('token')
+                                  },
+                                  body: JSON.stringify({ content: comment })
+                              });
+
+                              if (response.ok) {
+                                  commentInput.value = '';
+                                  loadComments(recipe.id);
+                              } else {
+                                  throw new Error('Erreur lors de l\'ajout du commentaire');
+                              }
+                          } catch (error) {
+                              alert('Erreur: ' + error.message);
+                          }
+                      }
+                  });
+
+                  // Gestionnaire pour la suppression
+                  deleteBtn.addEventListener('click', async () => {
+                      if (confirm('Voulez-vous vraiment supprimer cette recette ?')) {
+                          try {
+                              const response = await fetch(`http://localhost:4011/recipes/${recipe.id}`, {
+                                  method: 'DELETE',
+                                  headers: {
+                                      'Authorization': localStorage.getItem('token')
+                                  }
+                              });
+
+                              if (response.ok) {
+                                  recipeCard.remove();
+                                  alert('Recette supprimée avec succès');
+                              } else {
+                                  throw new Error('Erreur lors de la suppression');
+                              }
+                          } catch (error) {
+                              alert('Erreur: ' + error.message);
+                          }
+                      }
+                  });
+
+                  // Gestionnaire pour la modification
+                  editBtn.addEventListener('click', () => {
+                      const editForm = document.createElement('form');
+                      editForm.className = 'edit-form';
+                      editForm.innerHTML = `
+                          <h3>Modifier la recette</h3>
+                          <input type="text" name="title" value="${recipe.title}" required>
+                          <textarea name="ingredients" required>${recipe.ingredients}</textarea>
+                          <textarea name="instructions" required>${recipe.instructions}</textarea>
+                          <div class="form-buttons">
+                              <button type="submit">Enregistrer</button>
+                              <button type="button" class="cancel-btn">Annuler</button>
+                          </div>
+                      `;
+
+                      const recipeContent = recipeCard.querySelector('.recipe-content');
+                      const originalContent = recipeContent.innerHTML;
+                      recipeContent.innerHTML = '';
+                      recipeContent.appendChild(editForm);
+
+                      editForm.querySelector('.cancel-btn').addEventListener('click', () => {
+                          recipeContent.innerHTML = originalContent;
+                      });
+
+                      editForm.addEventListener('submit', async (e) => {
+                          e.preventDefault();
+                          const formData = new FormData(editForm);
+                          
+                          try {
+                              const response = await fetch(`http://localhost:4011/recipes/${recipe.id}`, {
+                                  method: 'PUT',
+                                  headers: {
+                                      'Content-Type': 'application/json',
+                                      'Authorization': localStorage.getItem('token')
+                                  },
+                                  body: JSON.stringify({
+                                      title: formData.get('title'),
+                                      ingredients: formData.get('ingredients'),
+                                      instructions: formData.get('instructions')
+                                  })
+                              });
+
+                              if (response.ok) {
+                                  loadAllRecipes();
+                              } else {
+                                  throw new Error('Erreur lors de la modification');
+                              }
+                          } catch (error) {
+                              alert('Erreur: ' + error.message);
+                          }
+                      });
+                  });
+              });
+
+          } catch (error) {
+              console.error('Erreur:', error);
+              document.getElementById('recipe-list').innerHTML = 
+                  `<p class="error">Erreur lors du chargement des recettes: ${error.message}</p>`;
+          }
+      });
+
+      // Récupérer l'élément de recherche
+      const searchInput = document.getElementById('search-input');
+      
+      // Ajouter un écouteur d'événement pour la touche "Entrée"
+      searchInput.addEventListener('keyup', async function(event) {
+          if (event.key === 'Enter') {
+              performSearch();
+          }
+      });
+
+      // Ajouter un écouteur d'événement pour l'icône de recherche
+      const searchIcon = document.querySelector('.las.la-search');
+      if (searchIcon) {
+          searchIcon.addEventListener('click', performSearch);
+      }
+
+      // Fonction pour charger les commentaires
+      async function loadComments(recipeId) {
+          try {
+              const response = await fetch(`http://localhost:4011/recipes/${recipeId}/comments`);
+              const comments = await response.json();
+              
+              const commentsList = document.querySelector(`#comments-${recipeId} .comments-list`);
+              commentsList.innerHTML = comments.map(comment => `
+                  <div class="comment">
+                      <strong>${comment.username}</strong>
+                      <p>${comment.content}</p>
+                      <small>${new Date(comment.created_at).toLocaleDateString('fr-FR')}</small>
+                  </div>
+              `).join('');
+          } catch (error) {
+              console.error('Erreur lors du chargement des commentaires:', error);
+          }
+      }
+
+      // Fonction de recherche
+      async function performSearch(query) {
+          try {
+              const response = await fetch('http://localhost:4011/recipes/search', {
+                  method: 'POST',
                   headers: {
-                      'Authorization': 'Bearer ' + token  // Ajout du JWT dans les en-têtes
-                  }
+                      'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ query: query })
               });
 
               if (!response.ok) {
-                  throw new Error(`HTTP error! status: ${response.status}`);
+                  throw new Error('Erreur lors de la recherche');
               }
 
               const recipes = await response.json();
-              const recipeList = document.getElementById('recipe-list');
-              recipeList.innerHTML = '';  // Réinitialisation de la liste
-
-              // Parcourir les recettes et les ajouter à la page
-              recipes.forEach(recipe => {
-                const recipeItem = document.createElement('div');
-                  recipeItem.className = 'recipe-item';
-                  const imagePath = recipe.image ? `/uploads/${recipe.image}` : '';
-                  console.log('Image path:', imagePath);  // Vérifie le chemin de l'image
-                  recipeItem.innerHTML = `
-                      <h3>${recipe.title}</h3>
-                      <p><strong>Ingrédients:</strong> ${recipe.ingredients}</p>
-                      <p><strong>Instructions:</strong> ${recipe.instructions}</p>
-                      <p><strong>Publié par:</strong> ${recipe.username}</p>
-                      ${imagePath ? `<img src="${imagePath}" alt="${recipe.title}">` : ''}
-                  `;
-                  recipeList.appendChild(recipeItem);
-              });
+              displayRecipes(recipes);
           } catch (error) {
-              console.error('Erreur lors de la récupération des recettes:', error.message, error);
-              alert('Erreur lors de la récupération des recettes');
+              console.error('Erreur:', error);
+              document.getElementById('recipe-list').innerHTML = 
+                  `<p class="error">Erreur lors de la recherche: ${error.message}</p>`;
           }
-      });
+      }
+
+      // Fonction pour vérifier si l'utilisateur est admin
+      function isUserAdmin() {
+          const user = JSON.parse(localStorage.getItem('user') || '{}');
+          return user.isAdmin === true;
+      }
+
+      // Fonction pour vérifier si l'utilisateur est connecté
+      function isUserLoggedIn() {
+          return !!localStorage.getItem('token');
+      }
+
+      // Modifions la fonction displayRecipes pour n'afficher les boutons qu'aux admins
+      function displayRecipes(recipes) {
+          const recipeList = document.getElementById('recipe-list');
+          recipeList.innerHTML = '';
+
+          recipes.forEach(recipe => {
+              const date = new Date(recipe.created_at).toLocaleDateString('fr-FR');
+
+              const recipeCard = document.createElement('div');
+              recipeCard.className = 'recipe-item';
+              recipeCard.innerHTML = `
+                  <div class="recipe-header">
+                      <div class="user-info">
+                          <span class="username">${recipe.username || 'Utilisateur'}</span>
+                          <div class="post-time">${date}</div>
+                      </div>
+                  </div>
+                  
+                  <div class="recipe-content">
+                      <h3 class="recipe-title">${recipe.title}</h3>
+                      
+                      <div class="recipe-details">
+                          <div class="recipe-ingredients">
+                              <h4>Ingrédients</h4>
+                              <p>${recipe.ingredients.replace(/\n/g, '<br>')}</p>
+                          </div>
+                          
+                          <div class="recipe-instructions">
+                              <h4>Instructions</h4>
+                              <p>${recipe.instructions.replace(/\n/g, '<br>')}</p>
+                          </div>
+                      </div>
+                  </div>
+                  
+                  ${recipe.image ? `
+                      <div class="recipe-image">
+                          <img src="/uploads/${recipe.image}" alt="${recipe.title}">
+                      </div>
+                  ` : ''}
+                  
+                  <div class="recipe-actions">
+                      <button class="action-button" title="J'aime">
+                          <i class="las la-heart"></i>
+                      </button>
+                      <button class="action-button comment-btn" data-recipe-id="${recipe.id}" title="Commenter">
+                          <i class="las la-comment"></i>
+                      </button>
+                      <button class="action-button" title="Partager">
+                          <i class="las la-share"></i>
+                      </button>
+                      <button class="action-button edit-btn" data-recipe-id="${recipe.id}" title="Modifier">
+                          <i class="las la-edit"></i>
+                      </button>
+                      <button class="action-button delete-btn" data-recipe-id="${recipe.id}" title="Supprimer">
+                          <i class="las la-trash"></i>
+                      </button>
+                  </div>
+
+                  <div class="comments-section" id="comments-${recipe.id}" style="display: none;">
+                      <div class="comments-list"></div>
+                      <div class="comment-form">
+                          <textarea class="comment-input" placeholder="Ajouter un commentaire..."></textarea>
+                          <button class="submit-comment" data-recipe-id="${recipe.id}">Publier</button>
+                      </div>
+                  </div>
+              `;
+              
+              recipeList.appendChild(recipeCard);
+          });
+      }
   </script>
 
 </body>
 </html>
+

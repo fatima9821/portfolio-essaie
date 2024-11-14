@@ -34,7 +34,7 @@ body {
   padding: 10px 10px;
   margin-top: 20px;
   margin-right: 10px;
-  background-color: #258a56;
+  background-color: #15633a;
   border: none;
   width: 10%;
   justify-content: space-between;
@@ -58,7 +58,7 @@ body {
 
 .nav-items {
   display: inline-block;
-  width: calc(70% - 100px);
+  width: calc(85% - 100px);
   vertical-align: middle;
   text-align: center;
 }
@@ -76,15 +76,15 @@ body {
 
 .nav-search {
   display: inline-block;
-  width: 30%;
+  width: 15%;
   vertical-align: middle;
   text-align: center;
 }
 
 .nav-search__el {
   background: #a0a5a5;
-  width: 50%;
-  padding: 0px;
+  width: 100%;
+  padding: 5px 10px;
   border-radius: 20px;
   display: flex;
   justify-content: center;
@@ -92,12 +92,13 @@ body {
   overflow: hidden;
 }
 
-
 .search-ip {
   background-color: #a0a5a5;
   border: none;
-  flex-basis: 60%;
+  flex-basis: 70%;
   outline: none;
+  padding: 5px;
+  font-size: 0.9rem;
 }
 
 .nav-search__el i {
@@ -513,13 +514,13 @@ body {
 .contact h5{
   align-items: center;  
   text-align: center; 
-  margin-left: -5%;
+  margin-left: -1%;
 }
 .contact h1{
   align-items: center;  
   text-align: center;
   font-size: 300%;
-  margin-left: -5%;
+  margin-left: -1%;
 }
 .contact p{
   color: #111;
@@ -535,7 +536,7 @@ body {
   margin-top: 50px;
   justify-content: center;
   align-items: center;
-  margin-left: 35%;
+  margin-left: 10%;
 }
 
 .contactfrom .inputboite{
@@ -766,13 +767,13 @@ body {
 /* expert*/
 
 .expert{
-  margin-top: -60px;
+  margin-top: -40px;
 }
 .expert .contenu{
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  margin-top: 40%;
+  margin-top: 80%;
   margin: 0;
 }
 .titret h2 {
@@ -810,7 +811,7 @@ body {
 }
 .temoignage .contenu .box{
   width: 300px;
-  margin: 20px;
+  margin: 40px;
   background: #fff;
   display: flex;
   justify-content: center;
@@ -1500,4 +1501,564 @@ form button {
 form button:hover {
   background-color: #e59400;
 }
+
+/* Conteneur principal des recettes */
+.recipes {
+  display: flex;
+  flex-direction: column; /* Affichage en colonne */
+  align-items: center; /* Centrer les recettes */
+  gap: 30px; /* Espace entre chaque recette */
+}
+
+/* Style de chaque recette */
+.recipe-item {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  max-width: 600px; /* Largeur maximale pour les recettes */
+  width: 150%; /* Pour que chaque recette prenne toute la largeur disponible */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* Images des recettes */
+.recipe-item img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+/* Titre des recettes */
+.recipe-item h3 {
+  margin: 0 0 10px;
+  font-size: 1.4em;
+  color: #333;
+}
+
+/* Texte des ingrédients et instructions */
+.recipe-item p {
+  font-size: 1em;
+  color: #555;
+  margin: 8px 0;
+}
+
+/* Variables pour les couleurs */
+:root {
+    --primary-color: #005a48;
+    --background-color: #ffffff;
+    --text-color: #333333;
+    --card-background: #ffffff;
+}
+
+/* Mode sombre */
+[data-theme="dark"] {
+    --primary-color: #00836b;
+    --background-color: #1a1a1a;
+    --text-color: #ffffff;
+    --card-background: #2d2d2d;
+}
+
+/* Style du bouton */
+.dark-mode-button {
+    background-color: #005a48;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: 20px;
+}
+
+.dark-mode-button:hover {
+    background-color: #004a3b;
+}
+
+/* Application des couleurs */
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    transition: all 0.3s ease;
+}
+
+.recipe-item {
+    background-color: var(--card-background);
+}
+
+/* Base styles */
+:root {
+    --mobile-padding: 15px;
+    --tablet-padding: 30px;
+}
+
+/* Reset pour le responsive */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Styles de base */
+body {
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* Navigation responsive */
+.nav-bar {
+    padding: 15px var(--mobile-padding);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+.nav-search {
+    flex: 1;
+    min-width: 200px;
+}
+
+.nav-search__el {
+    width: 100%;
+    max-width: 600px;
+}
+
+/* Conteneur de recettes responsive */
+.recipe-list {
+    display: grid;
+    gap: 20px;
+    padding: var(--mobile-padding);
+}
+
+/* Carte de recette responsive */
+.recipe-item {
+    width: 100%;
+    margin: 0;
+}
+
+.recipe-item img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+
+/* Formulaires responsives */
+form {
+    padding: var(--mobile-padding);
+    max-width: 100%;
+}
+
+input, textarea {
+    width: 100%;
+    padding: 10px;
+}
+
+/* Media Queries */
+/* Mobile first - puis adaptation aux plus grands écrans */
+
+/* Tablettes (768px et plus) */
+@media screen and (min-width: 768px) {
+    :root {
+        --mobile-padding: var(--tablet-padding);
+    }
+
+    .recipe-list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    form {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+}
+
+/* Petits ordinateurs (1024px et plus) */
+@media screen and (min-width: 1024px) {
+    .recipe-list {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Grands écrans (1440px et plus) */
+@media screen and (min-width: 1440px) {
+    .recipe-list {
+        grid-template-columns: repeat(4, 1fr);
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+}
+
+/* Styles spécifiques pour les appareils mobiles */
+@media screen and (max-width: 767px) {
+    .nav-bar {
+        flex-direction: column;
+    }
+
+    .dark-mode-button {
+        width: 100%;
+        justify-content: center;
+        margin: 10px 0;
+    }
+
+    .recipe-item {
+        font-size: 14px;
+    }
+
+    /* Ajustements pour les formulaires sur mobile */
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    input, textarea {
+        font-size: 16px; /* Évite le zoom automatique sur iOS */
+    }
+
+    /* Menu hamburger pour mobile */
+    .menu-toggle {
+        display: block;
+    }
+
+    .nav-links {
+        display: none;
+        width: 100%;
+    }
+
+    .nav-links.active {
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+/* Ajustements pour les images */
+.recipe-image {
+    position: relative;
+    padding-top: 56.25%; /* Ratio 16:9 */
+    overflow: hidden;
+}
+
+.recipe-image img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Améliorations pour l'accessibilité */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+    }
+}
+
+/* Support pour le mode sombre du système */
+@media (prefers-color-scheme: dark) {
+    :root {
+        /* Vos variables de couleur pour le mode sombre */
+    }
+}
+
+/* Optimisations pour les écrans haute résolution */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    /* Ajustements pour les écrans Retina */
+}
+
+.recipe-item {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.recipe-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.recipe-image {
+    width: 100%;
+    max-height: 300px;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+.recipe-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.recipe-details {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.recipe-info {
+    color: #666;
+    font-size: 0.9em;
+    margin-top: 10px;
+}
+
+.error {
+    color: red;
+    padding: 20px;
+    text-align: center;
+}
+
+/* Container principal */
+.recipe-container {
+    max-width: 600px; /* Largeur type Instagram */
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Style des cartes de recettes */
+.recipe-item {
+    background: white;
+    border: 1px solid #dbdbdb;
+    border-radius: 3px;
+    margin-bottom: 60px; /* Espace entre les posts */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* En-tête de la recette */
+.recipe-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid #efefef;
+}
+
+.recipe-header img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.recipe-header .user-info {
+    flex-grow: 1;
+}
+
+.recipe-header .username {
+    font-weight: 600;
+    color: #262626;
+    text-decoration: none;
+}
+
+.recipe-header .post-time {
+    font-size: 12px;
+    color: #8e8e8e;
+}
+
+/* Image de la recette */
+.recipe-image {
+    width: 100%;
+    position: relative;
+    padding-bottom: 100%; /* Ratio carré comme Instagram */
+}
+
+.recipe-image img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Contenu de la recette */
+.recipe-content {
+    padding: 12px 16px;
+    margin-bottom: 16px; /* Espace entre le contenu et l'image */
+}
+
+.recipe-title {
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 16px;
+}
+
+.recipe-details {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #262626;
+    margin-bottom: 20px;
+}
+
+.recipe-ingredients,
+.recipe-instructions {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.recipe-ingredients h4,
+.recipe-instructions h4 {
+    color: #1a1a1a;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.recipe-ingredients p,
+.recipe-instructions p {
+    line-height: 1.6;
+    color: #4a4a4a;
+}
+
+/* Actions (like, commentaire, etc.) */
+.recipe-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 10px;
+    border-top: 1px solid #eee;
+}
+
+.action-button {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.edit-btn {
+    background-color: #005a48;
+    color: white;
+}
+
+.delete-btn {
+    background-color: #dc3545;
+    color: white;
+}
+
+.edit-btn:hover {
+    background-color: #004a38;
+}
+
+.delete-btn:hover {
+    background-color: #c82333;
+}
+
+.edit-form {
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.edit-form input,
+.edit-form textarea {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.edit-form textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.form-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.form-buttons button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.form-buttons button[type="submit"] {
+    background-color: #005a48;
+    color: white;
+}
+
+.form-buttons .cancel-btn {
+    background-color: #6c757d;
+    color: white;
+}
+
+.comment-btn {
+    background-color: #0056b3;
+    color: white;
+}
+
+.comment-btn:hover {
+    background-color: #004494;
+}
+
+.comments-section {
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    margin-top: 10px;
+}
+
+.comment {
+    padding: 10px;
+    border-bottom: 1px solid #dee2e6;
+    margin-bottom: 10px;
+}
+
+.comment strong {
+    color: #005a48;
+}
+
+.comment small {
+    color: #6c757d;
+    display: block;
+    margin-top: 5px;
+}
+
+.comment-form {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.comment-input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    resize: vertical;
+    min-height: 38px;
+}
+
+.submit-comment {
+    background-color: #005a48;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.submit-comment:hover {
+    background-color: #004a38;
+}
+
 

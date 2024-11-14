@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -39,19 +39,27 @@
       <section id="submit-section" class="form-section">
         <h2>Soumettez votre recette</h2>
         <form id="recipe-form" enctype="multipart/form-data">
-          <label for="recipe-name">Nom de la recette :</label>
-          <input type="text" id="recipe-name" name="title" required>
-    
-          <label for="ingredients">Ingrédients :</label>
-          <textarea id="ingredients" name="ingredients" rows="5" required></textarea>
-    
-          <label for="instructions">Instructions :</label>
-          <textarea id="instructions" name="instructions" rows="8" required></textarea>
-    
-          <label for="image">Image de la recette :</label>
-          <input type="file" id="image" name="image" accept="image/*">
-    
-          <button type="submit">Partager ma recette</button>
+          <div class="form-group">
+              <label for="title">Titre de la recette</label>
+              <input type="text" id="title" name="title" required>
+          </div>
+          
+          <div class="form-group">
+              <label for="ingredients">Ingrédients</label>
+              <textarea id="ingredients" name="ingredients" required></textarea>
+          </div>
+          
+          <div class="form-group">
+              <label for="instructions">Instructions</label>
+              <textarea id="instructions" name="instructions" required></textarea>
+          </div>
+          
+          <div class="form-group">
+              <label for="image">Image</label>
+              <input type="file" id="image" name="image" accept="image/*">
+          </div>
+          
+          <button type="submit">Publier la recette</button>
         </form>
       </section>
 
@@ -63,48 +71,63 @@
       </section>
       <script src="script.js"></script>
       <script>
-        document.addEventListener('DOMContentLoaded', function () {
-          const form = document.getElementById('recipe-form');
-
-          // Vérifier si le formulaire existe
-          if (form) {
-            form.addEventListener('submit', async (event) => {
-              event.preventDefault(); // Empêche le rechargement de la page
-
-              const formData = new FormData(form);  // Collecte des données du formulaire
-
-              // Vérification du token avant de soumettre
-              const token = localStorage.getItem('token');
-              if (!token) {
-                alert('Vous devez être connecté pour soumettre une recette.');
-                return;
-              }
-
-              try {
-                // Envoi de la requête POST à l'API pour publier la recette
-                const response = await fetch('http://localhost:4011/recipes', {
-                  method: 'POST',
-                  headers: {
-                    'Authorization': 'Bearer ' + token  // JWT token
-                  },
-                  body: formData
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('recipe-form');
+            
+            if (form) {
+                form.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        alert('Veuillez vous connecter');
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    
+                    console.log("Token:", token);
+                    
+                    const formData = new FormData(form);
+                    console.log("Données du formulaire:", Object.fromEntries(formData));
+                    
+                    try {
+                        const response = await fetch('http://localhost:4011/recipes', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': token
+                            },
+                            body: formData
+                        });
+                        
+                        if (response.status === 403) {
+                            localStorage.removeItem('token');
+                            alert('Session expirée. Veuillez vous reconnecter.');
+                            window.location.href = 'login.html';
+                            return;
+                        }
+                        
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.message || 'Erreur lors de la publication');
+                        }
+                        
+                        const result = await response.json();
+                        alert('Recette publiée avec succès !');
+                        form.reset();
+                        window.location.href = 'recettespartager.html';
+                        
+                    } catch (error) {
+                        console.error('Erreur:', error);
+                        if (error.message.includes('Token')) {
+                            localStorage.removeItem('token');
+                            window.location.href = 'login.html';
+                        } else {
+                            alert('Erreur lors de la publication: ' + error.message);
+                        }
+                    }
                 });
-                if (response.ok) {
-                  alert('Recette publiée avec succès!');
-                  window.location.href = 'recettespartager.html'; // Redirection après succès
-                } else {
-                  const errorMsg = await response.text(); // Lire le message d'erreur du serveur
-                  alert('Erreur lors de la publication de la recette : ' + errorMsg);
-                }
-              } catch (error) {
-                console.error('Erreur lors de la soumission :', error);
-                alert('Erreur lors de la soumission du formulaire.');
-              }
-            });
-          } else {
-            console.error("Le formulaire de recette n'a pas été trouvé.");
-          }
+            }
         });
       </script>
 </body>
-</html>
+</html

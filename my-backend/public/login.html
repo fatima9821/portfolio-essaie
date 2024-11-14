@@ -55,6 +55,11 @@
                             const data = await response.json();
                             const token = data.token; // Supposons que le token est renvoyé dans la réponse
                             localStorage.setItem('token', token); // Stocke le token dans le localStorage
+                            localStorage.setItem('user', JSON.stringify({
+                                id: data.userId,
+                                isAdmin: data.isAdmin,
+                                username: data.username
+                            }));
                             alert('Connexion réussie!');
                             window.location.href = 'recettespartager.html'; // Redirection après connexion
                             } else {
